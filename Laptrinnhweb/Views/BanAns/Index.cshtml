@@ -1,0 +1,115 @@
+﻿@model IEnumerable<Laptrinnhweb.Models.BanAn>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-uppercase" style="color: #0056b3;">
+            <i class="bi bi-grid-3x3-gap-fill"></i> Sơ đồ bàn thực tế
+        </h2>
+
+        <a asp-controller="BanAns" asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle"></i> Thêm bàn mới
+        </a>
+    </div>
+
+    @* Bảng chú thích trạng thái *@
+    <div class="d-flex gap-3 mb-4 p-3 bg-light rounded-3 shadow-sm">
+        <div class="d-flex align-items-center">
+            <span class="badge bg-success rounded-circle p-2 me-2">&nbsp;</span> <b>Bàn trống</b>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-danger rounded-circle p-2 me-2">&nbsp;</span> <b>Đã có khách</b>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var item in Model)
+        {
+            @* Logic kiểm tra đơn đặt bàn đang hoạt động *@
+            var activeBooking = item.DatBans?.OrderByDescending(d => d.Id).FirstOrDefault(d => d.TrangThai != 2);
+
+            <div class="col-6 col-md-4 col-lg-2-4">
+                <div class="table-card @(item.TrangThai == 0 ? "table-free" : "table-busy") shadow-sm h-100 position-relative">
+
+                    @* Nút xóa bàn *@
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="position-absolute top-0 end-0 m-2">
+                        <button type="submit" class="btn-close btn-close-white small" style="font-size: 0.6rem;"></button>
+                    </form>
+
+                    <div class="card-body text-center p-4">
+                        <div class="table-icon mb-2">
+                            <i class="bi bi-door-open-fill fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold mb-1">Bàn @item.SoBan</h4>
+                        <p class="mb-3 small opacity-75">
+                            <i class="bi bi-people-fill"></i> @item.SoChoNgoi Chỗ ngồi
+                        </p>
+
+                        @if (item.TrangThai == 0)
+                        {
+                            @* Trường hợp 1: Bàn trống hoàn toàn *@
+                            <a asp-controller="MonAns" asp-action="Index"
+                               asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                               class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-success w-100">
+                                CHỌN BÀN
+                            </a>
+                        }
+                        else if (activeBooking != null && activeBooking.TrangThai == 1)
+                        {
+                            @* Trường hợp 2: Đã "Nhận bàn" *@
+                            <a asp-controller="MonAns" asp-action="Index"
+                               asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                               class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-white w-100 shadow-sm">
+                                <i class="bi bi-plus-lg"></i> GỌI THÊM
+                            </a>
+                        }
+                        else
+                        {
+                            @* Trường hợp 3: Có khách đặt nhưng chưa "Nhận bàn" *@
+                            <div class="d-grid">
+                                <span class="badge bg-white text-danger px-3 py-2 rounded-pill shadow-sm">
+                                    <i class="bi bi-lock-fill"></i> ĐỢI NHẬN BÀN
+                                </span>
+                                <small class="text-white-50 mt-1" style="font-size: 0.7rem;">Nhận bàn tại Quản lý đặt chỗ</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* col-lg-2-4 chia 5 cột trên màn hình lớn */
+    @@media (min-width: 992px) {
+        .col-lg-2-4 {
+            flex: 0 0 auto;
+            width: 20%;
+        }
+    }
+
+    .table-card {
+        border-radius: 20px;
+        color: white;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        overflow: hidden;
+    }
+
+        .table-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+        }
+
+    .table-free {
+        background: linear-gradient(145deg, #28a745, #218838);
+    }
+
+    .table-busy {
+        background: linear-gradient(145deg, #dc3545, #c82333);
+    }
+
+    .table-icon {
+        opacity: 0.9;
+    }
+</style>

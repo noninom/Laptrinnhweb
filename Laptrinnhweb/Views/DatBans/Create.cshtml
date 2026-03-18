@@ -1,0 +1,38 @@
+﻿@model Laptrinnhweb.Models.DatBan
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0" style="border-radius: 15px;">
+                <div class="card-header bg-primary text-white text-center py-3" style="border-radius: 15px 15px 0 0;">
+                    <h4 class="mb-0"><i class="bi bi-person-check"></i> Xác Nhận Đặt Bàn @ViewBag.TenBan</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <input type="hidden" asp-for="BanAnId" value="@ViewBag.TableId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên khách hàng</label>
+                            <input asp-for="TenKhachHang" class="form-control rounded-pill px-3" placeholder="Nhập tên của bạn..." required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số điện thoại</label>
+                            <input asp-for="SoDienThoai" class="form-control rounded-pill px-3" placeholder="090..." required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ngày giờ đến</label>
+                            <input asp-for="NgayDat" class="form-control rounded-pill px-3" type="datetime-local" required />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill shadow-sm fw-bold">XÁC NHẬN ĐẶT BÀN</button>
+                            <a asp-controller="MonAns" asp-action="Index" asp-route-banId="@ViewBag.TableId" class="btn btn-outline-secondary rounded-pill">Quay lại Menu</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

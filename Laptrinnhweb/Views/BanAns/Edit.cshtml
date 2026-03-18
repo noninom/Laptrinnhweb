@@ -1,0 +1,49 @@
+﻿@model Laptrinnhweb.Models.BanAn
+
+@{
+    ViewData["Title"] = "Cập nhật trạng thái bàn";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0" style="border-radius: 20px;">
+                <div class="card-header bg-primary text-white text-center py-3" style="border-radius: 20px 20px 0 0;">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Cập nhật @Model.SoBan</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">Tên bàn</label>
+                            <input asp-for="SoBan" class="form-control bg-light rounded-pill px-3" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">Số chỗ ngồi</label>
+                            @* Sửa SucChua thành SoChoNgoi để hết báo lỗi gạch đỏ *@
+                            <input asp-for="SoChoNgoi" class="form-control bg-light rounded-pill px-3" readonly />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Trạng thái hiện tại</label>
+                            <select asp-for="TrangThai" class="form-select rounded-pill px-3 border-primary">
+                                <option value="0">🟢 Trống (Sẵn sàng)</option>
+                                <option value="1">🔴 Đã đặt (Có khách)</option>
+                            </select>
+                            <small class="text-muted ms-2 mt-1 d-block italic">* Chuyển về Trống để giải phóng bàn.</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-save"></i> XÁC NHẬN THAY ĐỔI
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">Quay lại sơ đồ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

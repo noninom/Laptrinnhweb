@@ -1,0 +1,216 @@
+﻿@model IEnumerable<Laptrinnhweb.Models.MonAn>
+
+@{
+    ViewData["Title"] = "Thực Đơn Hải Sản";
+    var banId = Context.Request.Query["banId"];
+    var tenBan = Context.Request.Query["tenBan"];
+}
+
+<div class="container mt-5">
+    <h1 class="text-center mb-4 fw-bold text-uppercase" style="color: #0056b3; letter-spacing: 2px;">⚓ Thực Đơn Hải Sản ⚓</h1>
+    @{
+        // Giả sử bạn truyền ViewBag.IsServing từ Controller sang
+        bool isServing = ViewBag.IsServing ?? false;
+    }
+    @if (isServing)
+    {
+        <div class="alert alert-warning text-center shadow-sm rounded-pill mb-4 border-0">
+            <i class="bi bi- lightning-charge-fill"></i> <strong>Chế độ: Gọi thêm tại bàn</strong> - Món sẽ được cộng vào hóa đơn hiện tại.
+        </div>
+    }
+    @* Thông báo thành công *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-pill text-center mx-auto w-75" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(tenBan))
+    {
+        <div class="alert alert-info text-center shadow-sm rounded-pill mb-4 border-0">
+            <i class="bi bi-info-circle-fill"></i> Đang chọn món cho: <strong>Bàn @tenBan</strong>
+            | <a asp-controller="BanAns" asp-action="Index" class="text-decoration-none fw-bold"><i class="bi bi-arrow-repeat"></i> Đổi bàn</a>
+        </div>
+    }
+
+    @* Thanh tìm kiếm *@
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-7">
+            <form asp-action="Index" method="get" class="input-group shadow-sm rounded-pill p-1 bg-white border">
+                <input type="hidden" name="banId" value="@banId" />
+                <input type="hidden" name="tenBan" value="@tenBan" />
+                <input type="text" name="searchString" class="form-control border-0 px-4"
+                       placeholder="Tìm kiếm món ăn hoặc đồ uống..."
+                       value="@ViewData["CurrentFilter"]"
+                       style="border-radius: 30px 0 0 30px; outline: none; box-shadow: none;">
+                <button type="submit" class="btn btn-primary px-4 fw-bold" style="border-radius: 0 30px 30px 0;">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @* Tab chuyển đổi *@
+    <ul class="nav nav-pills justify-content-center mb-5" id="menuTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active px-4 fw-bold shadow-sm rounded-pill me-2" id="food-tab" data-bs-toggle="pill" data-bs-target="#food" type="button">🦀 HẢI SẢN</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link px-4 fw-bold shadow-sm rounded-pill" id="drink-tab" data-bs-toggle="pill" data-bs-target="#drink" type="button">🍺 ĐỒ UỐNG</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        @* Render chung cho cả 2 Tab *@
+        @{
+            string[] categories = { "Food", "Drink" };
+            string[] tabIds = { "food", "drink" };
+        }
+
+        @for (int i = 0; i < categories.Length; i++)
+        {
+            <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="@tabIds[i]" role="tabpanel">
+                <div class="row">
+                    @foreach (var item in Model.Where(x => x.Loai == categories[i]))
+                    {
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0 food-card transition-hover">
+                                <div class="position-relative overflow-hidden" style="height:220px; border-radius: 15px 15px 0 0;">
+                                    <img src="/images/@item.HinhAnh" class="card-img-top h-100 w-100" style="object-fit:cover;">
+                                    <div class="price-tag">@item.Gia.ToString("N0") đ</div>
+                                </div>
+                                <div class="card-body text-center d-flex flex-column p-4">
+                                    <h5 class="fw-bold text-dark">@item.TenMon</h5>
+                                    <p class="small text-muted flex-grow-1">@item.MoTa</p>
+
+                                    @if (!string.IsNullOrEmpty(banId))
+                                    {
+                                        <form asp-action="Order" method="post" class="mt-auto">
+                                            <input type="hidden" name="banId" value="@banId" />
+                                            <input type="hidden" name="monId" value="@item.Id" />
+
+                                            @* Bộ chọn số lượng đẹp *@
+                                            <div class="d-flex justify-content-center mb-3">
+                                                <div class="qty-container shadow-sm">
+                                                    <button type="button" class="qty-btn" onclick="decrement(this)">-</button>
+                                                    <input type="number" name="soLuong" value="1" min="1" class="qty-input" readonly>
+                                                    <button type="button" class="qty-btn" onclick="increment(this)">+</button>
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-success rounded-pill w-100 fw-bold shadow-sm">
+                                                <i class="bi bi-plus-lg me-1"></i> THÊM
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="BanAns" asp-action="Index" class="btn btn-outline-secondary rounded-pill mt-auto">Chọn bàn</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @* Nút chốt đơn *@
+    @if (!string.IsNullOrEmpty(banId))
+    {
+        
+        <div class="text-center mt-5 mb-5 p-4 shadow bg-white rounded-4 border-top border-primary border-4">
+            <a asp-controller="DatBans" asp-action="Create" asp-route-tableId="@banId"
+               class="btn btn-danger btn-lg rounded-pill px-5 py-3 shadow fw-bold text-uppercase">
+                Xác nhận đặt bàn <i class="bi bi-chevron-right ms-2"></i>
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .food-card {
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        background: #fff;
+    }
+
+    .transition-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+    }
+
+    /* Style cho nhãn giá */
+    .price-tag {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #d9534f;
+        padding: 4px 12px;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* Style bộ nút +/- */
+    .qty-container {
+        display: flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 50px;
+        padding: 2px;
+        border: 1px solid #eee;
+    }
+
+    .qty-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: none;
+        background: #fff;
+        color: #333;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .qty-btn:hover {
+            background: #0056b3;
+            color: #fff;
+        }
+
+    .qty-input {
+        width: 45px;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+        .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+</style>
+
+<script>
+    function increment(btn) {
+        let input = btn.parentNode.querySelector('.qty-input');
+        input.stepUp();
+    }
+    function decrement(btn) {
+        let input = btn.parentNode.querySelector('.qty-input');
+        if (input.value > 1) input.stepDown();
+    }
+</script>

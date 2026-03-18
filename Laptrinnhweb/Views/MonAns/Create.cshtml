@@ -1,0 +1,35 @@
+﻿@model Laptrinnhweb.Models.MonAn
+
+<div class="container mt-4">
+    <h2>Thêm món ăn mới</h2>
+    <form asp-action="Create">
+        <div class="mb-3">
+            <label class="form-label">Tên món</label>
+            <input asp-for="TenMon" class="form-control" placeholder="Ví dụ: Phở Bò" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Giá tiền (VNĐ)</label>
+            <input asp-for="Gia" class="form-control" type="number" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Loại</label>
+            <select asp-for="Loai" class="form-control">
+                <option value="Khai vị">Khai vị</option>
+                <option value="Món chính">Món chính</option>
+                <option value="Tráng miệng">Tráng miệng</option>
+                <option value="Đồ uống">Đồ uống</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mô tả món ăn</label>
+            <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tên file hình ảnh</label>
+            <input asp-for="HinhAnh" class="form-control" placeholder="Ví dụ: pho.jpg" required />
+            <small class="text-muted">Lưu ý: Bạn phải copy file ảnh vào thư mục wwwroot/images trước.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Lưu món ăn</button>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại Menu</a>
+    </form>
+</div>

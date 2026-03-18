@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Trang Chủ";
+}
+
+<div class="hero-section text-white text-center d-flex align-items-center justify-content-center"
+     style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/banner-seafood.jpg');
+            height: 80vh; background-size: cover; background-position: center; border-radius: 0 0 50px 50px;">
+    <div>
+        <h1 class="display-2 fw-bold mb-3">NHÀ HÀNG NHÓM 10</h1>
+        <p class="lead mb-4 fs-3">Tinh hoa từ đại dương - Tươi ngon trên từng bàn tiệc</p>
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a asp-controller="BanAns" asp-action="Index" class="btn btn-warning btn-lg px-4 gap-3 fw-bold rounded-pill">⚓ ĐẶT BÀN NGAY</a>
+            <a asp-controller="MonAns" asp-action="Index" class="btn btn-outline-light btn-lg px-4 rounded-pill">📜 XEM THỰC ĐƠN</a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5 py-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <h2 class="fw-bold mb-4" style="color: #0056b3;">Tại sao chọn chúng tôi?</h2>
+            <div class="d-flex mb-3">
+                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
+                <div class="ms-3"><h5>Hải sản tươi sống 100% đánh bắt trong ngày.</h5></div>
+            </div>
+            <div class="d-flex mb-3">
+                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
+                <div class="ms-3"><h5>Không gian view biển cực chill, sang trọng.</h5></div>
+            </div>
+            <div class="d-flex mb-3">
+                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
+                <div class="ms-3"><h5>Đội ngũ đầu bếp 5 sao giàu kinh nghiệm.</h5></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img src="/images/nha-hang.jpg" class="img-fluid rounded-4 shadow-lg" alt="Không gian nhà hàng">
+        </div>
+    </div>
+</div>

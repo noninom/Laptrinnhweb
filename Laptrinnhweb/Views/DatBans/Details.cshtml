@@ -1,0 +1,134 @@
+﻿@model Laptrinnhweb.Models.DatBan
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-3">
+                <a asp-action="Index" class="text-decoration-none text-secondary">
+                    <i class="bi bi-chevron-left"></i> Quay lại danh sách
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark py-4 text-center">
+                    <h3 class="text-white fw-bold mb-0">THÔNG TIN ĐẶT MÓN</h3>
+                    <small class="text-secondary">Mã đơn: #@Model.Id | @Model.NgayDat.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row mb-5">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted text-uppercase mb-3">Khách hàng</h6>
+                            <h4 class="fw-bold text-primary">@Model.TenKhachHang</h4>
+                            <p class="mb-1"><i class="bi bi-telephone me-2"></i>@Model.SoDienThoai</p>
+                        </div>
+                        <div class="col-sm-6 text-sm-end mt-4 mt-sm-0">
+                            <h6 class="text-muted text-uppercase mb-3">Vị trí phục vụ</h6>
+                            <div class="d-inline-block p-3 bg-light rounded-3 border text-center">
+                                <span class="d-block small text-muted">SỐ BÀN</span>
+                                <h3 class="fw-bold text-dark mb-0">@Model.BanAn?.SoBan</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle">
+                            <thead class="border-bottom text-muted">
+                                <tr>
+                                    <th class="py-3">MÓN ĂN</th>
+                                    <th class="py-3 text-center">SL</th>
+                                    <th class="py-3 text-end">ĐƠN GIÁ</th>
+                                    <th class="py-3 text-end">THÀNH TIỀN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in ViewBag.DanhSachMon as List<Laptrinnhweb.Models.ChiTietDatMon>)
+                                {
+                                    <tr class="border-bottom-dashed">
+                                        <td class="py-3">
+                                            <span class="fw-bold text-dark">@item.MonAn?.TenMon</span>
+                                        </td>
+                                        <td class="py-3 text-center">x @item.SoLuong</td>
+                                        <td class="py-3 text-end">@item.MonAn?.Gia.ToString("N0")</td>
+                                        <td class="py-3 text-end fw-bold">@((item.SoLuong * item.MonAn?.Gia)?.ToString("N0"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row justify-content-end mt-4">
+                        <div class="col-md-5">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tạm tính:</span>
+                                <span>@(((List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon).Sum(x => x.SoLuong * x.MonAn?.Gia)?.ToString("N0"))</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">Phí phục vụ (0%):</span>
+                                <span>0</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">TỔNG CỘNG:</span>
+                                <h3 class="fw-bold text-danger mb-0">
+                                    @(((List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon).Sum(x => x.SoLuong * x.MonAn?.Gia)?.ToString("N0")) VNĐ
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top text-center no-print">
+                        <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4 me-2">
+                            <i class="bi bi-printer me-2"></i>In phiếu món
+                        </button>
+                        <form asp-action="Checkout" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success rounded-pill px-4"
+                                    onclick="return confirm('Xác nhận thanh toán và hoàn tất đơn này?')">
+                                <i class="bi bi-check2-all me-2"></i>Hoàn tất & Trả bàn
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="text-center mt-4 d-none d-print-block">
+                        <p class="small text-muted italic">Cảm ơn quý khách! Hẹn gặp lại.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f0f2f5;
+    }
+
+    .border-bottom-dashed {
+        border-bottom: 1px dashed #dee2e6;
+    }
+
+    .card {
+        border: none !important;
+    }
+
+    /* Hiệu ứng khi in ấn */
+    @@media print {
+        .no-print, .btn, .mb-3 {
+            display: none !important;
+        }
+
+        .container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+        }
+
+        body {
+            background-color: white !important;
+        }
+    }
+</style>
