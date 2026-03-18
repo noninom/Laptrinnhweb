@@ -22,5 +22,6 @@ namespace Laptrinnhweb.Models
 
         // Trạng thái: 0 (Đang chờ), 1 (Đã nhận bàn/Thanh toán)
         public int TrangThai { get; set; }
+        public virtual ICollection<ChiTietDatBan> ChiTietDatBans { get; set; } = new List<ChiTietDatBan>();
     }
 }

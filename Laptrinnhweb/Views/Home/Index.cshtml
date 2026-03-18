@@ -1,16 +1,17 @@
 ﻿@{
-    ViewData["Title"] = "Trang Chủ";
+    ViewData["Title"] = "Nhà hàng của nhopsm 10";
 }
 
-<div class="hero-section text-white text-center d-flex align-items-center justify-content-center"
-     style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('/images/banner-seafood.jpg');
-            height: 80vh; background-size: cover; background-position: center; border-radius: 0 0 50px 50px;">
-    <div>
-        <h1 class="display-2 fw-bold mb-3">NHÀ HÀNG NHÓM 10</h1>
-        <p class="lead mb-4 fs-3">Tinh hoa từ đại dương - Tươi ngon trên từng bàn tiệc</p>
-        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-            <a asp-controller="BanAns" asp-action="Index" class="btn btn-warning btn-lg px-4 gap-3 fw-bold rounded-pill">⚓ ĐẶT BÀN NGAY</a>
-            <a asp-controller="MonAns" asp-action="Index" class="btn btn-outline-light btn-lg px-4 rounded-pill">📜 XEM THỰC ĐƠN</a>
+<div class="hero-container">
+    <div class="hero-content text-center">
+        <h5 class="text-warning text-uppercase fw-bold mb-3 ls-2">Chào mừng đến với nhà hàng nhóm 10</h5>
+        <h1 class="display-2 fw-bold text-white mb-4">Nhà hàng của nhóm 10</h1>
+        <p class="lead text-white mb-5 mx-auto text-shadow" style="max-width: 700px;">
+            "Tinh hoa từ đại dương - Tươi ngon trên từng bàn tiệc. Trải nghiệm ẩm thực 5 sao trong không gian biển xanh."
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="BanAns" asp-action="Index" class="btn btn-dola-primary">⚓ ĐẶT BÀN NGAY</a>
+            <a asp-controller="MonAns" asp-action="Index" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">📜 XEM THỰC ĐƠN</a>
         </div>
     </div>
 </div>
@@ -18,22 +19,27 @@
 <div class="container my-5 py-5">
     <div class="row align-items-center">
         <div class="col-lg-6">
-            <h2 class="fw-bold mb-4" style="color: #0056b3;">Tại sao chọn chúng tôi?</h2>
-            <div class="d-flex mb-3">
-                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
-                <div class="ms-3"><h5>Hải sản tươi sống 100% đánh bắt trong ngày.</h5></div>
-            </div>
-            <div class="d-flex mb-3">
-                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
-                <div class="ms-3"><h5>Không gian view biển cực chill, sang trọng.</h5></div>
-            </div>
-            <div class="d-flex mb-3">
-                <div class="flex-shrink-0"><i class="bi bi-check-circle-fill text-success fs-4"></i></div>
-                <div class="ms-3"><h5>Đội ngũ đầu bếp 5 sao giàu kinh nghiệm.</h5></div>
+            <div class="position-relative">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
+                     class="img-fluid rounded-4 shadow-lg" alt="Nha hang">
+                <div class="badge-experience">
+                    <h3 class="fw-bold mb-0">10+</h3>
+                    <p class="small mb-0">Năm kinh nghiệm</p>
+                </div>
             </div>
         </div>
-        <div class="col-lg-6">
-            <img src="/images/nha-hang.jpg" class="img-fluid rounded-4 shadow-lg" alt="Không gian nhà hàng">
+        <div class="col-lg-6 ps-lg-5">
+            <h6 class="text-danger fw-bold text-uppercase mt-4">Về chúng tôi</h6>
+            <h2 class="display-6 fw-bold mb-4">Chất lượng tạo nên thương hiệu</h2>
+            <p class="text-muted">Chúng tôi cam kết mang lại trải nghiệm tốt nhất cho khách hàng từ khâu đặt bàn đến lúc thưởng thức món ăn.</p>
+            <div class="d-flex mb-3">
+                <div class="icon-small bg-danger text-white me-3"><i class="bi bi-check-lg"></i></div>
+                <p class="fw-bold mb-0">Hải sản tươi sống đánh bắt trong ngày</p>
+            </div>
+            <div class="d-flex mb-3">
+                <div class="icon-small bg-danger text-white me-3"><i class="bi bi-check-lg"></i></div>
+                <p class="fw-bold mb-0">Không gian sang trọng, view biển cực đẹp</p>
+            </div>
         </div>
     </div>
 </div>

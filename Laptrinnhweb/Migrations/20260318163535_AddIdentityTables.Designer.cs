@@ -4,6 +4,7 @@ using Laptrinnhweb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Laptrinnhweb.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260318163535_AddIdentityTables")]
+    partial class AddIdentityTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,32 +121,6 @@ namespace Laptrinnhweb.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("BanAns");
-                });
-
-            modelBuilder.Entity("Laptrinnhweb.Models.ChiTietDatBan", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DatBanId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MonAnId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SoLuong")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DatBanId");
-
-                    b.HasIndex("MonAnId");
-
-                    b.ToTable("ChiTietDatBan");
                 });
 
             modelBuilder.Entity("Laptrinnhweb.Models.ChiTietDatMon", b =>
@@ -370,25 +347,6 @@ namespace Laptrinnhweb.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Laptrinnhweb.Models.ChiTietDatBan", b =>
-                {
-                    b.HasOne("Laptrinnhweb.Models.DatBan", "DatBan")
-                        .WithMany("ChiTietDatBans")
-                        .HasForeignKey("DatBanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Laptrinnhweb.Models.MonAn", "MonAn")
-                        .WithMany()
-                        .HasForeignKey("MonAnId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DatBan");
-
-                    b.Navigation("MonAn");
-                });
-
             modelBuilder.Entity("Laptrinnhweb.Models.ChiTietDatMon", b =>
                 {
                     b.HasOne("Laptrinnhweb.Models.BanAn", "BanAn")
@@ -479,11 +437,6 @@ namespace Laptrinnhweb.Migrations
             modelBuilder.Entity("Laptrinnhweb.Models.BanAn", b =>
                 {
                     b.Navigation("DatBans");
-                });
-
-            modelBuilder.Entity("Laptrinnhweb.Models.DatBan", b =>
-                {
-                    b.Navigation("ChiTietDatBans");
                 });
 #pragma warning restore 612, 618
         }

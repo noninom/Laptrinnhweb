@@ -15,5 +15,6 @@
         public int? DatBanId { get; set; }
         public virtual DatBan? DatBan { get; set; }
         public int SoLuong { get; set; }
+
     }
 }

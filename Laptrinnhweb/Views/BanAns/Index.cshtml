@@ -1,77 +1,83 @@
 ﻿@model IEnumerable<Laptrinnhweb.Models.BanAn>
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-uppercase" style="color: #0056b3;">
-            <i class="bi bi-grid-3x3-gap-fill"></i> Sơ đồ bàn thực tế
-        </h2>
+<div class="container-fluid mt-4 px-4">
+    @* Header Section - Phong cách tối giản sang trọng *@
+    <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>SƠ ĐỒ BÀN THỰC TẾ
+            </h2>
+            <p class="text-muted mb-0 small"><i class="bi bi-info-circle me-1"></i> Quản lý trạng thái và phục vụ khách hàng tại bàn</p>
+        </div>
 
-        <a asp-controller="BanAns" asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-plus-circle"></i> Thêm bàn mới
+        <a asp-controller="BanAns" asp-action="Create" class="btn btn-dola-add rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle-fill me-2"></i>THÊM BÀN MỚI
         </a>
     </div>
 
-    @* Bảng chú thích trạng thái *@
-    <div class="d-flex gap-3 mb-4 p-3 bg-light rounded-3 shadow-sm">
-        <div class="d-flex align-items-center">
-            <span class="badge bg-success rounded-circle p-2 me-2">&nbsp;</span> <b>Bàn trống</b>
+    @* Bảng chú thích trạng thái - Thiết kế lại gọn gàng hơn *@
+    <div class="d-flex gap-4 mb-4 p-3 bg-white rounded-4 shadow-sm border justify-content-center">
+        <div class="status-indicator">
+            <span class="dot-lg bg-success-soft"></span> <b>Bàn trống</b>
         </div>
-        <div class="d-flex align-items-center">
-            <span class="badge bg-danger rounded-circle p-2 me-2">&nbsp;</span> <b>Đã có khách</b>
+        <div class="status-indicator border-start ps-4">
+            <span class="dot-lg bg-danger-soft"></span> <b>Đã có khách</b>
+        </div>
+        <div class="status-indicator border-start ps-4">
+            <span class="dot-lg bg-warning-soft"></span> <b>Đợi nhận bàn</b>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 justify-content-center">
         @foreach (var item in Model)
         {
-            @* Logic kiểm tra đơn đặt bàn đang hoạt động *@
             var activeBooking = item.DatBans?.OrderByDescending(d => d.Id).FirstOrDefault(d => d.TrangThai != 2);
+            var isBusy = item.TrangThai != 0;
+            var isPending = isBusy && (activeBooking == null || activeBooking.TrangThai == 0);
 
             <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="table-card @(item.TrangThai == 0 ? "table-free" : "table-busy") shadow-sm h-100 position-relative">
+                <div class="table-card-v2 @(isBusy ? (isPending ? "card-pending" : "card-busy") : "card-free")">
 
-                    @* Nút xóa bàn *@
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="position-absolute top-0 end-0 m-2">
-                        <button type="submit" class="btn-close btn-close-white small" style="font-size: 0.6rem;"></button>
+                    @* Nút xóa bàn - Tinh tế hơn *@
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="delete-form">
+                        <button type="submit" class="btn-delete-table"><i class="bi bi-x"></i></button>
                     </form>
 
-                    <div class="card-body text-center p-4">
-                        <div class="table-icon mb-2">
-                            <i class="bi bi-door-open-fill fs-1"></i>
+                    <div class="card-body-v2 text-center">
+                        <div class="table-circle-icon mb-3">
+                            <i class="bi @(isBusy ? "bi-person-fill" : "bi-door-open") fs-2"></i>
                         </div>
-                        <h4 class="fw-bold mb-1">Bàn @item.SoBan</h4>
-                        <p class="mb-3 small opacity-75">
-                            <i class="bi bi-people-fill"></i> @item.SoChoNgoi Chỗ ngồi
-                        </p>
 
-                        @if (item.TrangThai == 0)
-                        {
-                            @* Trường hợp 1: Bàn trống hoàn toàn *@
-                            <a asp-controller="MonAns" asp-action="Index"
-                               asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
-                               class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-success w-100">
-                                CHỌN BÀN
-                            </a>
-                        }
-                        else if (activeBooking != null && activeBooking.TrangThai == 1)
-                        {
-                            @* Trường hợp 2: Đã "Nhận bàn" *@
-                            <a asp-controller="MonAns" asp-action="Index"
-                               asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
-                               class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-white w-100 shadow-sm">
-                                <i class="bi bi-plus-lg"></i> GỌI THÊM
-                            </a>
-                        }
-                        else
-                        {
-                            @* Trường hợp 3: Có khách đặt nhưng chưa "Nhận bàn" *@
-                            <div class="d-grid">
-                                <span class="badge bg-white text-danger px-3 py-2 rounded-pill shadow-sm">
-                                    <i class="bi bi-lock-fill"></i> ĐỢI NHẬN BÀN
-                                </span>
-                                <small class="text-white-50 mt-1" style="font-size: 0.7rem;">Nhận bàn tại Quản lý đặt chỗ</small>
-                            </div>
-                        }
+                        <h4 class="fw-bold mb-1">BÀN @item.SoBan</h4>
+                        <div class="seat-badge mb-3">
+                            <i class="bi bi-people-fill me-1"></i> @item.SoChoNgoi Chỗ
+                        </div>
+
+                        <div class="action-zone">
+                            @if (item.TrangThai == 0)
+                            {
+                                <a asp-controller="MonAns" asp-action="Index"
+                                   asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                                   class="btn-table-action btn-free-action">
+                                    <i class="bi bi-plus-lg me-1"></i> CHỌN BÀN
+                                </a>
+                            }
+                            else if (activeBooking != null && activeBooking.TrangThai == 1)
+                            {
+                                <a asp-controller="MonAns" asp-action="Index"
+                                   asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                                   class="btn-table-action btn-busy-action">
+                                    <i class="bi bi-cart-plus me-1"></i> GỌI THÊM
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="pending-status">
+                                    <div class="spinner-grow spinner-grow-sm text-danger mb-1" role="status"></div>
+                                    <div class="small fw-bold text-uppercase">Đợi nhận bàn</div>
+                                </div>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,7 +86,7 @@
 </div>
 
 <style>
-    /* col-lg-2-4 chia 5 cột trên màn hình lớn */
+    /* 1. Layout & Column Setup */
     @@media (min-width: 992px) {
         .col-lg-2-4 {
             flex: 0 0 auto;
@@ -88,28 +94,179 @@
         }
     }
 
-    .table-card {
-        border-radius: 20px;
-        color: white;
-        transition: transform 0.3s, box-shadow 0.3s;
-        border: none;
+    body {
+        background-color: #f8f9fa;
+    }
+
+    /* 2. Table Card V2 - Glassmorphism & Soft Shadows */
+    .table-card-v2 {
+        background: white;
+        border-radius: 24px;
+        padding: 25px 15px;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.05);
         overflow: hidden;
     }
 
-        .table-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+        .table-card-v2:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
         }
 
-    .table-free {
-        background: linear-gradient(145deg, #28a745, #218838);
+    /* 3. Color Variations */
+    .card-free {
+        border-top: 6px solid #28a745;
     }
 
-    .table-busy {
-        background: linear-gradient(145deg, #dc3545, #c82333);
+    .card-busy {
+        border-top: 6px solid #dc3545;
+        background: #fff5f5;
     }
 
-    .table-icon {
-        opacity: 0.9;
+    .card-pending {
+        border-top: 6px solid #ffc107;
+        background: #fffdf5;
+    }
+
+    .card-free .table-circle-icon {
+        background: #e8f5e9;
+        color: #28a745;
+    }
+
+    .card-busy .table-circle-icon {
+        background: #ffebee;
+        color: #dc3545;
+    }
+
+    .card-pending .table-circle-icon {
+        background: #fff8e1;
+        color: #ffc107;
+    }
+
+    /* 4. Elements Style */
+    .table-circle-icon {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+    }
+
+    .seat-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #f1f3f5;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+    /* 5. Buttons & Actions */
+    .btn-table-action {
+        width: 100%;
+        border: none;
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: 0.3s;
+        text-decoration: none;
+        display: block;
+    }
+
+    .btn-free-action {
+        background: #28a745;
+        color: white;
+    }
+
+        .btn-free-action:hover {
+            background: #218838;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+
+    .btn-busy-action {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-busy-action:hover {
+            background: #c82333;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            color: white;
+        }
+
+    .btn-dola-add {
+        background: #002d5b;
+        color: #ffc107;
+        font-weight: bold;
+        border: none;
+    }
+
+        .btn-dola-add:hover {
+            background: #001d3d;
+            color: #ffc107;
+        }
+
+    .pending-status {
+        color: #dc3545;
+        font-size: 0.7rem;
+    }
+
+    /* 6. Delete Button */
+    .delete-form {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: 0.3s;
+    }
+
+    .table-card-v2:hover .delete-form {
+        opacity: 1;
+    }
+
+    .btn-delete-table {
+        background: #f8f9fa;
+        border: none;
+        color: #adb5bd;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        line-height: 1;
+    }
+
+        .btn-delete-table:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+    /* Indicators */
+    .dot-lg {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .bg-success-soft {
+        background-color: #28a745;
+        box-shadow: 0 0 0 4px #e8f5e9;
+    }
+
+    .bg-danger-soft {
+        background-color: #dc3545;
+        box-shadow: 0 0 0 4px #ffebee;
+    }
+
+    .bg-warning-soft {
+        background-color: #ffc107;
+        box-shadow: 0 0 0 4px #fff8e1;
     }
 </style>
