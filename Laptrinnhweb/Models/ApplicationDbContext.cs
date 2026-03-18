@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
+using Laptrinnhweb.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 namespace Laptrinnhweb.Models
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         public DbSet<BanAn> BanAns { get; set; }
