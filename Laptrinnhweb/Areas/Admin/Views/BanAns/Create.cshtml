@@ -1,0 +1,44 @@
+﻿@model Laptrinnhweb.Models.BanAn
+
+@{
+    ViewData["Title"] = "Thêm bàn mới";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0" style="border-radius: 20px;">
+                <div class="card-header bg-primary text-white text-center py-3" style="border-radius: 20px 20px 0 0;">
+                    <h3 class="mb-0"><i class="bi bi-plus-circle"></i> Thêm Bàn Ăn Mới</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số Bàn</label>
+                            <input asp-for="SoBan" class="form-control rounded-pill" placeholder="Ví dụ: Bàn 01" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Sức Chứa (Chỗ ngồi)</label>
+                            @* *@
+                            <input asp-for="SoChoNgoi" class="form-control rounded-pill" type="number" min="1" value="4" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Trạng Thái Ban Đầu</label>
+                            <select asp-for="TrangThai" class="form-select rounded-pill">
+                                <option value="0">Trống (Màu xanh)</option>
+                                <option value="1">Đang có khách (Màu đỏ)</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Quay lại</a>
+                            <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm">Lưu bàn</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

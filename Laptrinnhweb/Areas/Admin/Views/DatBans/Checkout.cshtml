@@ -1,0 +1,183 @@
+﻿@model Laptrinnhweb.Models.DatBan
+
+@{
+    ViewData["Title"] = "Thanh toán hóa đơn";
+    decimal tongTien = 0;
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                @* Header Hóa Đơn *@
+                <div class="card-header bg-dola-dark text-center py-4">
+                    <img src="~/images/logo-dola.png" alt="Logo" style="height: 60px;" class="mb-2">
+                    <h3 class="text-warning fw-bold mb-0">HÓA ĐƠN THANH TOÁN</h3>
+                    <p class="text-white-50 small mb-0">Mã hóa đơn: #@Model.Id | Ngày: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="fw-bold border-bottom pb-2">Thông tin khách hàng</h5>
+                            <p class="mb-1"><strong>Khách hàng:</strong> @Model.TenKhachHang</p>
+                            <p class="mb-1"><strong>Số điện thoại:</strong> @Model.SoDienThoai</p>
+                            <p class="mb-1"><strong>Vị trí:</strong> <span class="badge bg-primary">Bàn @Model.BanAn?.SoBan</span></p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h5 class="fw-bold border-bottom pb-2">Trạng thái</h5>
+                            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                                <i class="bi bi-check-circle-fill"></i> Sẵn sàng thanh toán
+                            </span>
+                        </div>
+                    </div>
+
+                    @* Bảng danh sách món ăn *@
+                    <div class="table-responsive mb-4">
+                        <table class="table table-borderless align-middle">
+                            <thead class="table-light">
+                                <tr class="text-secondary small text-uppercase">
+                                    <th>Món ăn</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            @* Thay đoạn foreach cũ bằng đoạn này *@
+                            <tbody>
+                                @if (ViewBag.DanhSachMon != null)
+                                {
+                                    foreach (var ct in ViewBag.DanhSachMon)
+                                    {
+                                        var thanhTien = ct.SoLuong * ct.MonAn.Gia;
+                                        tongTien += (decimal)thanhTien;
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@ct.MonAn.TenMon</div>
+                                            </td>
+                                            <td class="text-center">x @ct.SoLuong</td>
+                                            <td class="text-end">@ct.MonAn.Gia.ToString("N0") đ</td>
+                                            <td class="text-end fw-bold">@thanhTien.ToString("N0") đ</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row justify-content-end">
+                        <div class="col-md-5">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tổng tiền món:</span>
+                                <span>@tongTien.ToString("N0") đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Thuế (VAT 10%):</span>
+                                <span>@((tongTien * 0.1m).ToString("N0")) đ</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 fw-bold mb-0">TỔNG CỘNG:</span>
+                                <span class="h3 fw-bold text-danger mb-0">@((tongTien * 1.1m).ToString("N0")) đ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-5">
+
+                    @* Phương thức thanh toán *@
+                    <h5 class="fw-bold mb-4"><i class="bi bi-wallet2 me-2"></i>Chọn phương thức thanh toán</h5>
+                    <form asp-action="ConfirmPayment" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-4">
+                                <label class="payment-option">
+                                    <input type="radio" name="paymentMethod" value="Cash" checked>
+                                    <div class="option-content">
+                                        <i class="bi bi-cash-stack fs-2"></i>
+                                        <span>Tiền mặt</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="payment-option">
+                                    <input type="radio" name="paymentMethod" value="Transfer">
+                                    <div class="option-content">
+                                        <i class="bi bi-bank fs-2"></i>
+                                        <span>Chuyển khoản</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="payment-option">
+                                    <input type="radio" name="paymentMethod" value="Momo">
+                                    <div class="option-content">
+                                        <i class="bi bi-qr-code-scan fs-2"></i>
+                                        <span>Ví điện tử</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 justify-content-center">
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-5 py-3 fw-bold">QUAY LẠI</a>
+                            <button type="submit" class="btn btn-dola-payment rounded-pill px-5 py-3 fw-bold shadow">
+                                XÁC NHẬN & XUẤT HÓA ĐƠN <i class="bi bi-printer-fill ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-dola-dark {
+        background-color: #002d5b;
+    }
+
+    /* Thiết kế nút thanh toán option */
+    .payment-option {
+        width: 100%;
+        cursor: pointer;
+    }
+
+        .payment-option input {
+            display: none;
+        }
+
+    .option-content {
+        border: 2px solid #f0f0f0;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .payment-option input:checked + .option-content {
+        border-color: #ffc107;
+        background-color: #fffdf5;
+        color: #002d5b;
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
+    }
+
+    .payment-option i {
+        color: #002d5b;
+    }
+
+    .btn-dola-payment {
+        background-color: #ffc107;
+        color: #002d5b;
+        border: none;
+    }
+
+        .btn-dola-payment:hover {
+            background-color: #e5ad06;
+            color: #002d5b;
+        }
+</style>
