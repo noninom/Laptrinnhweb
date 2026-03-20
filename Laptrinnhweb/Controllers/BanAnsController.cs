@@ -65,6 +65,7 @@ namespace Laptrinnhweb.Controllers
         }
 
         // 3. Thay đổi trạng thái bàn nhanh
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(int id)
         {

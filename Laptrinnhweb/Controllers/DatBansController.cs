@@ -1,4 +1,5 @@
 ﻿using Laptrinnhweb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,7 @@ public class DatBansController : Controller
     }
 
     // 1. Xem danh sách khách đặt bàn
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Index()
     {
         var danhSachDat = await _context.DatBans
@@ -22,6 +24,7 @@ public class DatBansController : Controller
     }
 
     // 2. Trang nhập thông tin khách khi bắt đầu đặt
+   
     public async Task<IActionResult> Create(int tableId)
     {
         var ban = await _context.BanAns.FindAsync(tableId);
@@ -31,18 +34,16 @@ public class DatBansController : Controller
         ViewBag.TenBan = ban.SoBan;
         return View();
     }
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(DatBan datBan)
     {
-        datBan.TrangThai = 0; // Mặc định là mới đặt (Đợi nhận bàn)
+        datBan.TrangThai = 0;
 
         if (ModelState.IsValid)
         {
             _context.Add(datBan);
 
-            // Khóa bàn ngay khi có khách đặt (Chuyển sang màu đỏ/vàng trên sơ đồ)
             var ban = await _context.BanAns.FindAsync(datBan.BanAnId);
             if (ban != null)
             {
@@ -51,12 +52,15 @@ public class DatBansController : Controller
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+
+            return RedirectToAction("Index", "BanAns");
         }
+
         return View(datBan);
     }
 
     // 3. Action xử lý nhận khách vào bàn (Bắt đầu phục vụ)
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> NhanBan(int id)
     {
         var datBan = await _context.DatBans.Include(d => d.BanAn).FirstOrDefaultAsync(d => d.Id == id);
@@ -74,6 +78,7 @@ public class DatBansController : Controller
     }
 
     // 4. TRANG THANH TOÁN (GET): Hiển thị hóa đơn cho nhân viên kiểm tra
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Checkout(int? id)
     {
         if (id == null) return NotFound();
@@ -96,6 +101,7 @@ public class DatBansController : Controller
     }
 
     // 5. XÁC NHẬN THANH TOÁN (POST): Chốt đơn và làm trống bàn
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmPayment(int id, string paymentMethod)
@@ -127,6 +133,7 @@ public class DatBansController : Controller
     }
 
     // 6. Xem chi tiết đơn đặt (Dành cho quản lý xem nhanh)
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Details(int id)
     {
         var donDat = await _context.DatBans
