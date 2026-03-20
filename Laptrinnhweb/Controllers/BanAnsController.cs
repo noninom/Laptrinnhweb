@@ -1,4 +1,5 @@
 ﻿using Laptrinnhweb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,11 +44,13 @@ namespace Laptrinnhweb.Controllers
         }
 
         // 2. Trang tạo bàn mới
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BanAn banAn)
@@ -77,6 +80,7 @@ namespace Laptrinnhweb.Controllers
         }
 
         // 4. Xóa bàn
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -90,6 +94,7 @@ namespace Laptrinnhweb.Controllers
         }
 
         // 5. Chỉnh sửa thông tin bàn
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -97,7 +102,7 @@ namespace Laptrinnhweb.Controllers
             if (banAn == null) return NotFound();
             return View(banAn);
         }
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BanAn banAn)
