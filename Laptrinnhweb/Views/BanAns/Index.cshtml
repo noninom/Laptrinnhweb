@@ -9,10 +9,12 @@
             </h2>
             <p class="text-muted mb-0 small"><i class="bi bi-info-circle me-1"></i> Quản lý trạng thái và phục vụ khách hàng tại bàn</p>
         </div>
-
-        <a asp-controller="BanAns" asp-action="Create" class="btn btn-dola-add rounded-pill px-4 shadow-sm">
-            <i class="bi bi-plus-circle-fill me-2"></i>THÊM BÀN MỚI
-        </a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="BanAns" asp-action="Create" class="btn btn-dola-add rounded-pill px-4 shadow-sm">
+                <i class="bi bi-plus-circle-fill me-2"></i>THÊM BÀN MỚI
+            </a>
+        }
     </div>
 
     @* Bảng chú thích trạng thái - Thiết kế lại gọn gàng hơn *@
@@ -38,10 +40,14 @@
             <div class="col-6 col-md-4 col-lg-2-4">
                 <div class="table-card-v2 @(isBusy ? (isPending ? "card-pending" : "card-busy") : "card-free")">
 
-                    @* Nút xóa bàn - Tinh tế hơn *@
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="delete-form">
-                        <button type="submit" class="btn-delete-table"><i class="bi bi-x"></i></button>
-                    </form>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="delete-form">
+                            <button type="submit" class="btn-delete-table">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </form>
+                    }
 
                     <div class="card-body-v2 text-center">
                         <div class="table-circle-icon mb-3">
