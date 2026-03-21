@@ -60,29 +60,37 @@ namespace Laptrinnhweb.Controllers
         {
             if (soLuong < 1) soLuong = 1;
 
-            // 1. Tìm đơn đặt bàn của bàn này mà khách ĐANG ĂN (TrangThai = 1)
+            // 1. Tìm đơn đặt bàn CHƯA THANH TOÁN (Trạng thái 0: Đợi nhận, hoặc 1: Đang ăn)
+            // Thay vì chỉ tìm == 1, ta tìm != 2 (2 là đã thanh toán/xong)
             var activeBooking = await _context.DatBans
-                .FirstOrDefaultAsync(d => d.BanAnId == banId && d.TrangThai == 1);
+                .FirstOrDefaultAsync(d => d.BanAnId == banId && d.TrangThai != 2);
 
-            // 2. Tìm xem món này đã có trong danh sách gọi của bàn/đơn này chưa
+            if (activeBooking == null)
+            {
+                TempData["Error"] = "Bàn này hiện chưa có khách đặt hoặc đã thanh toán.";
+                return RedirectToAction("Index", "BanAns");
+            }
+
+            // 2. Tìm xem món này đã có trong đơn đặt bàn HIỆN TẠI chưa
+            // Lọc theo DatBanId là chính xác nhất để không lẫn với khách cũ
             var existingItem = await _context.ChiTietDatMons
-                .FirstOrDefaultAsync(o => o.BanAnId == banId && o.MonAnId == monId &&
-                                         (activeBooking != null ? o.DatBanId == activeBooking.Id : o.DatBanId == null));
+                .FirstOrDefaultAsync(o => o.DatBanId == activeBooking.Id && o.MonAnId == monId);
 
             if (existingItem != null)
             {
                 // Nếu có rồi thì tăng số lượng
                 existingItem.SoLuong += soLuong;
+                _context.Update(existingItem);
             }
             else
             {
-                // Nếu chưa có thì tạo mới
+                // Nếu chưa có thì tạo mới và BẮT BUỘC gán DatBanId
                 var newItem = new ChiTietDatMon
                 {
                     BanAnId = banId,
                     MonAnId = monId,
                     SoLuong = soLuong,
-                    DatBanId = activeBooking?.Id // Quan trọng: Gắn ID đơn hàng nếu khách đang ngồi ăn
+                    DatBanId = activeBooking.Id // Không dùng ?. nữa, bắt buộc phải có ID này
                 };
                 _context.ChiTietDatMons.Add(newItem);
             }
@@ -90,7 +98,7 @@ namespace Laptrinnhweb.Controllers
             await _context.SaveChangesAsync();
 
             var ban = await _context.BanAns.FindAsync(banId);
-            TempData["Success"] = activeBooking != null ? "Đã gọi thêm món thành công!" : "Đã thêm món vào danh sách đặt.";
+            TempData["Success"] = "Đã chọn món thành công!";
 
             return RedirectToAction("Index", new { banId = banId, tenBan = ban?.SoBan });
         }

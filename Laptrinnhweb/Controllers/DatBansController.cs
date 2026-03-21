@@ -24,7 +24,7 @@ public class DatBansController : Controller
     }
 
     // 2. Trang nhập thông tin khách khi bắt đầu đặt
-   
+
     public async Task<IActionResult> Create(int tableId)
     {
         var ban = await _context.BanAns.FindAsync(tableId);
@@ -78,26 +78,26 @@ public class DatBansController : Controller
     }
 
     // 4. TRANG THANH TOÁN (GET): Hiển thị hóa đơn cho nhân viên kiểm tra
+
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Checkout(int? id)
     {
         if (id == null) return NotFound();
 
-        var donDat = await _context.DatBans
-            .Include(d => d.BanAn)
+        var datBan = await _context.DatBans
+            .Include(d => d.BanAn) // Nạp thông tin bàn
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (donDat == null) return NotFound();
+        if (datBan == null) return NotFound();
 
-        // Lấy danh sách món ăn từ bảng ChiTietDatMons dựa trên BanAnId
+        // LẤY DANH SÁCH MÓN PHẢI CÓ .Include(c => c.MonAn)
         var danhSachMon = await _context.ChiTietDatMons
-            .Include(c => c.MonAn)
-            .Where(c => c.BanAnId == donDat.BanAnId)
+            .Include(c => c.MonAn) // <--- BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ HIỆN TÊN MÓN
+            .Where(c => c.DatBanId == id)
             .ToListAsync();
 
         ViewBag.DanhSachMon = danhSachMon;
-
-        return View(donDat);
+        return View(datBan);
     }
 
     // 5. XÁC NHẬN THANH TOÁN (POST): Chốt đơn và làm trống bàn
@@ -134,20 +134,72 @@ public class DatBansController : Controller
 
     // 6. Xem chi tiết đơn đặt (Dành cho quản lý xem nhanh)
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(int? id)
     {
-        var donDat = await _context.DatBans
+        if (id == null) return NotFound();
+
+        var datBan = await _context.DatBans
             .Include(d => d.BanAn)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (donDat == null) return NotFound();
+        if (datBan == null) return NotFound();
 
+        // LẤY DANH SÁCH MÓN: Phải Include MonAn để lấy được Tên và Giá
         var danhSachMon = await _context.ChiTietDatMons
             .Include(c => c.MonAn)
-            .Where(c => c.BanAnId == donDat.BanAnId)
+            .Where(c => c.DatBanId == id)
             .ToListAsync();
 
-        ViewBag.DanhSachMon = danhSachMon;
-        return View(donDat);
+        ViewBag.DanhSachMon = danhSachMon; // Truyền danh sách này ra View
+
+        return View(datBan);
     }
+    [HttpPost]
+    public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string tenKhach, string soDienThoai)
+    {
+        // 1. Kiểm tra dữ liệu đầu vào
+        if (string.IsNullOrEmpty(cartJson) || cartJson == "[]")
+        {
+            return RedirectToAction("Index", "MonAns", new { banId = tableId });
+        }
+
+        // 2. Tạo hóa đơn (DatBan)
+        var datBan = new DatBan
+        {
+            BanAnId = tableId,
+            TenKhachHang = tenKhach,
+            SoDienThoai = soDienThoai,
+            NgayDat = DateTime.Now,
+            TrangThai = 1
+        };
+        _context.DatBans.Add(datBan);
+        await _context.SaveChangesAsync(); // Lưu để lấy DatBan.Id
+
+        // 3. GIẢI MÃ GIỎ HÀNG VÀ LƯU CHI TIẾT (Phần quan trọng nhất)
+        var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
+        foreach (var item in items)
+        {
+            var chiTiet = new ChiTietDatMon
+            {
+                DatBanId = datBan.Id,
+                MonAnId = item.Id,
+                SoLuong = item.Qty,
+                BanAnId = tableId // Nếu model của bạn yêu cầu BanAnId ở đây
+            };
+            _context.ChiTietDatMons.Add(chiTiet);
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Chuyển hướng thẳng đến trang chi tiết vừa tạo
+        return RedirectToAction("Details", new { id = datBan.Id });
+    }
+
+    // Class phụ để hứng dữ liệu JSON
+    public class CartItem
+    {
+        public int Id { get; set; }
+        public int Qty { get; set; }
+    }
+
 }

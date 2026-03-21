@@ -1,45 +1,205 @@
 ﻿@{
-    ViewData["Title"] = "Nhà hàng của nhopsm 10";
+    ViewData["Title"] = "Nhà hàng Nhóm 10 - Tinh hoa Hải Sản";
 }
 
-<div class="hero-container">
-    <div class="hero-content text-center">
-        <h5 class="text-warning text-uppercase fw-bold mb-3 ls-2">Chào mừng đến với nhà hàng nhóm 10</h5>
-        <h1 class="display-2 fw-bold text-white mb-4">Nhà hàng của nhóm 10</h1>
-        <p class="lead text-white mb-5 mx-auto text-shadow" style="max-width: 700px;">
-            "Tinh hoa từ đại dương - Tươi ngon trên từng bàn tiệc. Trải nghiệm ẩm thực 5 sao trong không gian biển xanh."
+<div class="hero-container d-flex align-items-center justify-content-center">
+    <div class="hero-content text-center animate__animated animate__fadeIn">
+        <div class="mb-3">
+            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold text-uppercase ls-2">
+                ⚓ Chào mừng đến với nhà hàng nhóm 10
+            </span>
+        </div>
+
+        <h1 class="display-1 fw-bold text-white mb-4 main-title">
+            Nhà hàng của nhóm 10
+        </h1>
+
+        <div class="title-underline-hero mb-4"></div>
+
+        <p class="lead text-white mb-5 mx-auto text-shadow fw-light" style="max-width: 800px; font-style: italic;">
+            "Tinh hoa từ đại dương - Tươi ngon trên từng bàn tiệc. <br>
+            Trải nghiệm ẩm thực 5 sao trong không gian biển xanh."
         </p>
-        <div class="d-flex justify-content-center gap-3">
-            <a asp-controller="BanAns" asp-action="Index" class="btn btn-dola-primary">⚓ ĐẶT BÀN NGAY</a>
-            <a asp-controller="MonAns" asp-action="Index" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">📜 XEM THỰC ĐƠN</a>
+
+        <div class="d-flex justify-content-center gap-4">
+            <a asp-controller="BanAns" asp-action="Index" class="btn btn-dola-main px-5 py-3 shadow-lg">
+                <i class="bi bi-calendar-check me-2"></i> ĐẶT BÀN NGAY
+            </a>
+            <a asp-controller="MonAns" asp-action="Index" class="btn btn-outline-light rounded-pill px-5 py-3 fw-bold blur-btn">
+                <i class="bi bi-book me-2"></i> XEM THỰC ĐƠN
+            </a>
         </div>
     </div>
 </div>
 
-<div class="container my-5 py-5">
+<div class="container my-5 py-5 bg-white rounded-4 shadow-sm">
     <div class="row align-items-center">
-        <div class="col-lg-6">
-            <div class="position-relative">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="position-relative overflow-hidden rounded-4 shadow-lg hover-zoom">
                 <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
-                     class="img-fluid rounded-4 shadow-lg" alt="Nha hang">
-                <div class="badge-experience">
-                    <h3 class="fw-bold mb-0">10+</h3>
-                    <p class="small mb-0">Năm kinh nghiệm</p>
+                     class="img-fluid w-100 shadow-lg" alt="Nha hang">
+                <div class="badge-experience animate__animated animate__bounceIn">
+                    <h3 class="fw-bold mb-0 text-warning">10+</h3>
+                    <p class="small mb-0 text-white">Năm kinh nghiệm</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-6 ps-lg-5">
-            <h6 class="text-danger fw-bold text-uppercase mt-4">Về chúng tôi</h6>
-            <h2 class="display-6 fw-bold mb-4">Chất lượng tạo nên thương hiệu</h2>
-            <p class="text-muted">Chúng tôi cam kết mang lại trải nghiệm tốt nhất cho khách hàng từ khâu đặt bàn đến lúc thưởng thức món ăn.</p>
-            <div class="d-flex mb-3">
-                <div class="icon-small bg-danger text-white me-3"><i class="bi bi-check-lg"></i></div>
-                <p class="fw-bold mb-0">Hải sản tươi sống đánh bắt trong ngày</p>
+            <h6 class="text-primary fw-bold text-uppercase letter-spacing-2">Về chúng tôi</h6>
+            <h2 class="display-5 fw-bold mb-4 text-dark">Chất lượng tạo nên <span class="text-primary">thương hiệu</span></h2>
+            <p class="text-muted fs-5 lh-lg">Chúng tôi cam kết mang lại trải nghiệm tốt nhất cho khách hàng từ khâu đặt bàn đến lúc thưởng thức món ăn thượng hạng.</p>
+
+            <div class="features mt-4">
+                <div class="d-flex align-items-center mb-4 p-3 rounded-3 bg-light-blue border-start border-primary border-4">
+                    <div class="icon-circle bg-primary text-white me-3 shadow-sm"><i class="bi bi-check2-all"></i></div>
+                    <p class="fw-bold mb-0 text-dark fs-6">Hải sản tươi sống đánh bắt trực tiếp trong ngày</p>
+                </div>
+                <div class="d-flex align-items-center mb-4 p-3 rounded-3 bg-light-blue border-start border-primary border-4">
+                    <div class="icon-circle bg-primary text-white me-3 shadow-sm"><i class="bi bi-tsunami"></i></div>
+                    <p class="fw-bold mb-0 text-dark fs-6">Không gian sang trọng, view biển cực đẹp 360 độ</p>
+                </div>
             </div>
-            <div class="d-flex mb-3">
-                <div class="icon-small bg-danger text-white me-3"><i class="bi bi-check-lg"></i></div>
-                <p class="fw-bold mb-0">Không gian sang trọng, view biển cực đẹp</p>
+        </div>
+    </div>
+
+    <hr class="my-5 opacity-25">
+
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-5 order-2 order-lg-1">
+            <div class="p-4 rounded-4 bg-light border-start border-warning border-4 shadow-sm">
+                <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Vị Trí Của Chúng Tôi</h4>
+
+                <div class="mb-3">
+                    <p class="fw-bold mb-1"><i class="bi bi-map me-2 text-primary"></i>Địa chỉ:</p>
+                    <p class="text-muted small">Khu Công nghệ cao XLHN, Hiệp Phú, Thủ Đức, Hồ Chí Minh, Vietnam</p>
+                </div>
+
+                <div class="mb-3">
+                    <p class="fw-bold mb-1"><i class="bi bi-telephone me-2 text-success"></i>Hotline liên hệ:</p>
+                    <p class="text-muted">2380600695 - 2380602234</p>
+                </div>
+
+                <div class="mb-4">
+                    <p class="fw-bold mb-1"><i class="bi bi-clock me-2 text-warning"></i>Giờ mở cửa:</p>
+                    <p class="text-muted">Thứ 2 - Chủ Nhật: 09:00 AM - 11:00 PM</p>
+                </div>
+
+                <a href="https://www.google.com/maps/search/?api=1&query=Khu+Công+nghệ+cao+XLHN+Hiệp+Phú+Thủ+Đức" target="_blank" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-signpost-2 me-2"></i>XEM ĐƯỜNG ĐI TRÊN GOOGLE MAPS
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-7 order-1 order-lg-2">
+            <div class="rounded-4 overflow-hidden shadow-lg border border-white border-5" style="height: 400px;">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.4795907421115!2d106.78453487570415!3d10.85108625781292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175276e7ec10391%3A0x3bb83086eb07842c!2zS2h1IEPDtG5nIG5naOG7hyBjYW8gVFAuSENN!5e0!3m2!1svi!2s!4v1711037200000!5m2!1svi!2s"
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    :root {
+        --primary-dola: #002d5b;
+        --accent-dola: #ffc107;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .hero-container {
+        height: 100vh;
+        margin-top: -70px;
+    }
+
+    .main-title {
+        font-size: 5rem;
+        text-shadow: 3px 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .title-underline-hero {
+        width: 150px;
+        height: 5px;
+        background: var(--accent-dola);
+        margin: 0 auto;
+        border-radius: 10px;
+    }
+
+    .btn-dola-main {
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50px;
+        font-weight: bold;
+        transition: all 0.3s;
+        border: none;
+    }
+
+        .btn-dola-main:hover {
+            background-color: #bb2d3b;
+            transform: scale(1.05);
+            color: white;
+        }
+
+    .blur-btn {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255,255,255,0.5);
+    }
+
+    .badge-experience {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: var(--primary-dola);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border-top: 4px solid var(--accent-dola);
+    }
+
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-light-blue {
+        background-color: #f8faff;
+    }
+
+    .hover-zoom img {
+        transition: 0.5s;
+    }
+
+    .hover-zoom:hover img {
+        transform: scale(1.1);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-dola);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #001f3f;
+            transform: translateY(-2px);
+        }
+
+    .letter-spacing-2 {
+        letter-spacing: 2px;
+    }
+</style>
