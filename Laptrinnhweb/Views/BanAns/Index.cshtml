@@ -50,8 +50,18 @@
                     }
 
                     <div class="card-body-v2 text-center">
-                        <div class="table-circle-icon mb-3">
-                            <i class="bi @(isBusy ? "bi-person-fill" : "bi-door-open") fs-2"></i>
+                        <div class="table-image-container mb-3">
+                            @if (item.SoChoNgoi <= 4)
+                            {
+                                @* Nếu bàn bận, có thể dùng ảnh có người/màu khác nếu bạn có *@
+                                <img src="~/images/@(isBusy ? "ban4cho.jpg" : "ban4cho.jpg")"
+                                     class="img-fluid table-img" alt="Bàn 4 chỗ">
+                            }
+                            else
+                            {
+                                <img src="~/images/@(isBusy ? "ban6cho.jpg" : "ban6cho.jpg")"
+                                     class="img-fluid table-img" alt="Bàn 6 chỗ">
+                            }
                         </div>
 
                         <h4 class="fw-bold mb-1">BÀN @item.SoBan</h4>
@@ -101,9 +111,59 @@
     }
 
     body {
-        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        /* Hình nền đại dương sang trọng */
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat; /* Thêm fixed */
+    }
+    /* Chỉnh tiêu đề chính */
+    h2.text-dark {
+        color: #ffffff !important;
     }
 
+    /* --- PHẦN BỔ SUNG CHO HÌNH ẢNH BÀN --- */
+    .table-image-container {
+        height: 100px; /* Cố định độ cao để hàng lối thẳng tắp */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .table-img {
+        max-height: 100%;
+        width: auto;
+        object-fit: contain;
+        /* Đổ bóng nhẹ cho ảnh để trông thật hơn trên nền trắng */
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+    }
+
+    /* Hiệu ứng phóng to ảnh khi rê chuột vào Card */
+    .table-card-v2:hover .table-image-container {
+        transform: scale(1.15) rotate(2deg);
+    }
+
+    /* Hiệu ứng riêng cho bàn đang bận */
+    .card-busy .table-img {
+        filter: drop-shadow(0 8px 12px rgba(220, 53, 69, 0.3));
+    }
+
+    /* Đảm bảo Card cũ không bị vỡ bố cục khi thêm ảnh */
+    .card-body-v2 {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    /* Chỉnh dòng ghi chú nhỏ */
+    p.text-muted {
+        color: rgba(255, 255, 255, 0.8) !important; /* Trắng mờ 80% cho dễ nhìn */
+    }
     /* 2. Table Card V2 - Glassmorphism & Soft Shadows */
     .table-card-v2 {
         background: white;

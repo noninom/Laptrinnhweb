@@ -10,5 +10,6 @@ namespace Laptrinnhweb.Models
         public DbSet<DatBan> DatBans { get; set; }
         public DbSet<MonAn> MonAns { get; set; }
         public DbSet<ChiTietDatMon> ChiTietDatMons { get; set; }
+
     }
 }

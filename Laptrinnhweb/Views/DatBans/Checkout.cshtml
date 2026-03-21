@@ -47,17 +47,17 @@
                             <tbody>
                                 @if (ViewBag.DanhSachMon != null)
                                 {
-                                    foreach (var ct in ViewBag.DanhSachMon)
+                                    foreach (var mon in (List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon)
                                     {
-                                        var thanhTien = ct.SoLuong * ct.MonAn.Gia;
+                                        // CỘNG DỒN TỔNG TIỀN Ở ĐÂY
+                                        var thanhTien = (mon.SoLuong * (mon.MonAn?.Gia ?? 0));
                                         tongTien += (decimal)thanhTien;
+
                                         <tr>
-                                            <td>
-                                                <div class="fw-bold">@ct.MonAn.TenMon</div>
-                                            </td>
-                                            <td class="text-center">x @ct.SoLuong</td>
-                                            <td class="text-end">@ct.MonAn.Gia.ToString("N0") đ</td>
-                                            <td class="text-end fw-bold">@thanhTien.ToString("N0") đ</td>
+                                            <td>@mon.MonAn?.TenMon</td>
+                                            <td class="text-center">@mon.SoLuong</td>
+                                            <td class="text-end">@mon.MonAn?.Gia.ToString("N0") VNĐ</td>
+                                            <td class="text-end">@thanhTien.ToString("N0") VNĐ</td>
                                         </tr>
                                     }
                                 }
