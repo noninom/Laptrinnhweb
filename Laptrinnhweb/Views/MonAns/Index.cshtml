@@ -137,10 +137,15 @@
                         <span>Tổng:</span>
                         <span id="total-price" class="text-danger">0 đ</span>
                     </div>
-                    <form asp-controller="DatBans" asp-action="Create" method="get">
+                    <form asp-controller="DatBans" asp-action="ConfirmOrder" method="post">
+                        @Html.AntiForgeryToken() @* Thêm bảo mật *@
                         <input type="hidden" name="tableId" value="@banId" />
-                        <input type="hidden" name="cartJson" id="cartJson" /> @* Lưu dữ liệu giỏ để gửi đi *@
-                        <button type="submit" id="btn-submit" class="btn btn-warning w-100 fw-bold rounded-pill" disabled>XÁC NHẬN</button>
+                        <input type="hidden" name="cartJson" id="cartJson" />
+
+                        @* Nút bấm sẽ đổi tên nếu là khách đang ngồi tại bàn *@
+                        <button type="submit" id="btn-submit" class="btn btn-warning w-100 fw-bold rounded-pill" disabled>
+                            @(isServing ? "GỬI YÊU CẦU GỌI THÊM" : "XÁC NHẬN ĐẶT MÓN")
+                        </button>
                     </form>
                 </div>
             </div>

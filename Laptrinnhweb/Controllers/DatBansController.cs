@@ -175,46 +175,95 @@ public class DatBansController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string tenKhach, string soDienThoai)
+    public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string? tenKhach, string? soDienThoai)
     {
-        // 1. Kiểm tra dữ liệu đầu vào
+        // 1. Kiểm tra giỏ hàng trống
         if (string.IsNullOrEmpty(cartJson) || cartJson == "[]")
         {
             return RedirectToAction("Index", "MonAns", new { banId = tableId });
         }
 
-        // 2. Tạo hóa đơn (DatBan)
-        var datBan = new DatBan
-        {
-            BanAnId = tableId,
-            TenKhachHang = tenKhach,
-            SoDienThoai = soDienThoai,
-            NgayDat = DateTime.Now,
-            TrangThai = 1
-        };
-        _context.DatBans.Add(datBan);
-        await _context.SaveChangesAsync(); // Lưu để lấy DatBan.Id
+        // 2. TÌM ĐƠN ĐẶT HIỆN TẠI CỦA BÀN (Trạng thái 0: Đợi nhận bàn hoặc 1: Đang phục vụ)
+        var currentDatBan = await _context.DatBans
+            .FirstOrDefaultAsync(d => d.BanAnId == tableId && (d.TrangThai == 0 || d.TrangThai == 1));
 
-        // 3. GIẢI MÃ GIỎ HÀNG VÀ LƯU CHI TIẾT (Phần quan trọng nhất)
         var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
-        foreach (var item in items)
+
+        if (currentDatBan != null)
         {
-            var chiTiet = new ChiTietDatMon
+            // --- TRƯỜNG HỢP GỌI THÊM: Tự động cập nhật vào đơn cũ ---
+            foreach (var item in items)
             {
-                DatBanId = datBan.Id,
-                MonAnId = item.Id,
-                SoLuong = item.Qty,
-                BanAnId = tableId // Nếu model của bạn yêu cầu BanAnId ở đây
-            };
-            _context.ChiTietDatMons.Add(chiTiet);
+                // Kiểm tra món này đã có trong danh sách đã gọi của bàn này chưa
+                var existingDetail = await _context.ChiTietDatMons
+                    .FirstOrDefaultAsync(c => c.DatBanId == currentDatBan.Id && c.MonAnId == item.Id);
+
+                if (existingDetail != null)
+                {
+                    // Nếu đã có món này rồi thì cộng dồn số lượng
+                    existingDetail.SoLuong += item.Qty;
+                    _context.Update(existingDetail);
+                }
+                else
+                {
+                    // Nếu chưa có thì thêm dòng mới
+                    var chiTiet = new ChiTietDatMon
+                    {
+                        DatBanId = currentDatBan.Id,
+                        MonAnId = item.Id,
+                        SoLuong = item.Qty,
+                        BanAnId = tableId
+                    };
+                    _context.ChiTietDatMons.Add(chiTiet);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Đã cập nhật thêm món vào bàn!";
+            return RedirectToAction("Details", new { id = currentDatBan.Id });
         }
+        else
+        {
+            // --- TRƯỜNG HỢP ĐẶT MỚI: Kiểm tra nếu chưa có thông tin khách thì bắt nhập ---
+            if (string.IsNullOrEmpty(tenKhach))
+            {
+                // Nếu khách bấm xác nhận ở giỏ hàng mà chưa có thông tin, 
+                // chuyển hướng sang trang Create để nhập tên/sdt
+                return RedirectToAction("Create", new { tableId = tableId, cartJson = cartJson });
+            }
 
-        await _context.SaveChangesAsync();
+            // Tạo mới như cũ
+            var datBan = new DatBan
+            {
+                BanAnId = tableId,
+                TenKhachHang = tenKhach,
+                SoDienThoai = soDienThoai,
+                NgayDat = DateTime.Now,
+                TrangThai = 1 // Vào bàn ngay
+            };
 
-        // Chuyển hướng thẳng đến trang chi tiết vừa tạo
-        return RedirectToAction("Details", new { id = datBan.Id });
+            _context.DatBans.Add(datBan);
+
+            // Cập nhật trạng thái bàn sang "Đã có khách" (1)
+            var banAn = await _context.BanAns.FindAsync(tableId);
+            if (banAn != null) banAn.TrangThai = 1;
+
+            await _context.SaveChangesAsync();
+
+            foreach (var item in items)
+            {
+                _context.ChiTietDatMons.Add(new ChiTietDatMon
+                {
+                    DatBanId = datBan.Id,
+                    MonAnId = item.Id,
+                    SoLuong = item.Qty,
+                    BanAnId = tableId
+                });
+            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Details", new { id = datBan.Id });
+        }
     }
-
     // Class phụ để hứng dữ liệu JSON
     public class CartItem
     {
