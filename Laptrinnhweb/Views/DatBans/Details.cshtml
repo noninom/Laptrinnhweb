@@ -47,13 +47,18 @@
                             <tbody>
                                 @if (ViewBag.DanhSachMon != null)
                                 {
-                                    @foreach (var mon in (List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon)
+                                    foreach (var item in ViewBag.DanhSachMon as List<Laptrinnhweb.Models.ChiTietDatMon>)
                                     {
-                                        <tr>
-                                            <td>@mon.MonAn?.TenMon</td>
-                                            <td>@mon.SoLuong</td>
-                                            <td>@mon.MonAn?.Gia.ToString("N0") VNĐ</td>
-                                            <td>@((mon.SoLuong * mon.MonAn?.Gia)?.ToString("N0")) VNĐ</td>
+                                        <tr class="border-bottom-dashed">
+                                            <td class="py-3">
+                                                <div class="fw-bold text-dark">@item.MonAn?.TenMon</div>
+                                                <small class="text-muted">Hải sản tươi sống</small>
+                                            </td>
+                                            <td class="py-3 text-center">
+                                                <span class="badge bg-light text-dark border">@item.SoLuong</span>
+                                            </td>
+                                            <td class="py-3 text-end">@item.MonAn?.Gia.ToString("N0") <small>đ</small></td>
+                                            <td class="py-3 text-end fw-bold">@((item.SoLuong * item.MonAn?.Gia)?.ToString("N0")) <small>đ</small></td>
                                         </tr>
                                     }
                                 }

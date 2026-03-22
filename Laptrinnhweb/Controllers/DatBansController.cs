@@ -25,37 +25,58 @@ public class DatBansController : Controller
 
     // 2. Trang nhập thông tin khách khi bắt đầu đặt
 
-    public async Task<IActionResult> Create(int tableId)
+    // Sửa Action GET Create
+    public async Task<IActionResult> Create(int tableId, string cartJson)
     {
         var ban = await _context.BanAns.FindAsync(tableId);
         if (ban == null) return NotFound();
 
         ViewBag.TableId = tableId;
         ViewBag.TenBan = ban.SoBan;
+        ViewBag.CartJson = cartJson; // Gửi chuỗi món ăn sang View nhập thông tin khách
         return View();
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(DatBan datBan)
+    public async Task<IActionResult> Create(DatBan datBan, string cartJson)
     {
-        datBan.TrangThai = 0;
-
         if (ModelState.IsValid)
         {
+            // BƯỚC 1: Thiết lập trạng thái là 0 (Đợi nhận bàn) thay vì 1
+            datBan.TrangThai = 0;
+            datBan.NgayDat = DateTime.Now;
             _context.Add(datBan);
+            await _context.SaveChangesAsync();
 
+            // BƯỚC 2: Cập nhật trạng thái Bàn ăn thành 2 (Tương ứng với màu vàng "Đợi nhận bàn" trên sơ đồ)
             var ban = await _context.BanAns.FindAsync(datBan.BanAnId);
             if (ban != null)
             {
-                ban.TrangThai = 1;
+                ban.TrangThai = 2; // Giả sử sơ đồ bàn của bạn quy định 2 là màu vàng
                 _context.Update(ban);
             }
 
+            // BƯỚC 3: Lưu món ăn (Vẫn lưu bình thường nhưng khách chưa ăn ngay)
+            if (!string.IsNullOrEmpty(cartJson))
+            {
+                var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
+                foreach (var item in items)
+                {
+                    var chiTiet = new ChiTietDatMon
+                    {
+                        DatBanId = datBan.Id,
+                        MonAnId = item.Id,
+                        SoLuong = item.Qty,
+                        BanAnId = datBan.BanAnId
+                    };
+                    _context.ChiTietDatMons.Add(chiTiet);
+                }
+            }
+
             await _context.SaveChangesAsync();
-
-            return RedirectToAction("Index", "BanAns");
+            return RedirectToAction("Index", "BanAns"); // Quay lại sơ đồ bàn
         }
-
         return View(datBan);
     }
 
@@ -66,17 +87,19 @@ public class DatBansController : Controller
         var datBan = await _context.DatBans.Include(d => d.BanAn).FirstOrDefaultAsync(d => d.Id == id);
         if (datBan != null)
         {
-            datBan.TrangThai = 1; // Đang phục vụ
+            datBan.TrangThai = 1; // Chuyển đơn đặt sang "Đang phục vụ"
+
             if (datBan.BanAn != null)
             {
-                datBan.BanAn.TrangThai = 1;
+                datBan.BanAn.TrangThai = 1; // Chuyển bàn sang màu Đỏ "Đã có khách"
             }
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Khách đã vào bàn thành công!";
-        }
-        return RedirectToAction(nameof(Index));
-    }
 
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Khách đã vào bàn, bắt đầu phục vụ!";
+        }
+        // Sau khi nhận bàn, dẫn đến trang Chi tiết để xem món/in phiếu
+        return RedirectToAction("Details", new { id = id });
+    }
     // 4. TRANG THANH TOÁN (GET): Hiển thị hóa đơn cho nhân viên kiểm tra
 
     [Authorize(Roles = "Admin")]
@@ -134,26 +157,23 @@ public class DatBansController : Controller
 
     // 6. Xem chi tiết đơn đặt (Dành cho quản lý xem nhanh)
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int id)
     {
-        if (id == null) return NotFound();
-
-        var datBan = await _context.DatBans
+        var donDat = await _context.DatBans
             .Include(d => d.BanAn)
             .FirstOrDefaultAsync(m => m.Id == id);
 
-        if (datBan == null) return NotFound();
+        if (donDat == null) return NotFound();
 
-        // LẤY DANH SÁCH MÓN: Phải Include MonAn để lấy được Tên và Giá
         var danhSachMon = await _context.ChiTietDatMons
             .Include(c => c.MonAn)
-            .Where(c => c.DatBanId == id)
+            .Where(c => c.BanAnId == donDat.BanAnId)
             .ToListAsync();
 
-        ViewBag.DanhSachMon = danhSachMon; // Truyền danh sách này ra View
-
-        return View(datBan);
+        ViewBag.DanhSachMon = danhSachMon;
+        return View(donDat);
     }
+
     [HttpPost]
     public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string tenKhach, string soDienThoai)
     {

@@ -8,8 +8,11 @@
                     <h4 class="mb-0"><i class="bi bi-person-check"></i> Xác Nhận Đặt Bàn @ViewBag.TenBan</h4>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Create">
+                    <form asp-action="Create" method="post">
+                        @* Đảm bảo có method="post" *@
                         <input type="hidden" asp-for="BanAnId" value="@ViewBag.TableId" />
+
+                        <input type="hidden" name="cartJson" value="@ViewBag.CartJson" />
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tên khách hàng</label>
