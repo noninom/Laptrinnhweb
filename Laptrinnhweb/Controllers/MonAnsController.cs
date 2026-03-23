@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Laptrinnhweb.Controllers
@@ -61,10 +62,14 @@ namespace Laptrinnhweb.Controllers
         {
             if (soLuong < 1) soLuong = 1;
 
-            // 1. Tìm đơn đặt bàn CHƯA THANH TOÁN (Trạng thái 0: Đợi nhận, hoặc 1: Đang ăn)
-            // Thay vì chỉ tìm == 1, ta tìm != 2 (2 là đã thanh toán/xong)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var activeBooking = await _context.DatBans
-                .FirstOrDefaultAsync(d => d.BanAnId == banId && d.TrangThai != 2);
+                .FirstOrDefaultAsync(d =>
+                    d.BanAnId == banId
+                    && d.UserId == userId   // 🔥 CHẶN USER
+                    && d.TrangThai != 2
+                );
 
             if (activeBooking == null)
             {
@@ -108,9 +113,14 @@ namespace Laptrinnhweb.Controllers
         [AllowAnonymous] // Cho phép khách xem danh sách món đã đặt mà không cần đăng nhập Admin
         public async Task<IActionResult> GetTableDetails(int id)
         {
-            // 1. Tìm đơn đặt bàn hiện tại của bàn này (Trạng thái khác 2 - Chưa thanh toán)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var activeBooking = await _context.DatBans
-                .FirstOrDefaultAsync(d => d.BanAnId == id && d.TrangThai != 2);
+                .FirstOrDefaultAsync(d =>
+                    d.BanAnId == id
+                    && d.UserId == userId   // 🔥 CHẶN
+                    && d.TrangThai != 2
+                );
 
             if (activeBooking == null)
             {
