@@ -47,17 +47,17 @@
                             <tbody>
                                 @if (ViewBag.DanhSachMon != null)
                                 {
-                                    foreach (var ct in ViewBag.DanhSachMon)
+                                    foreach (var mon in (List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon)
                                     {
-                                        var thanhTien = ct.SoLuong * ct.MonAn.Gia;
+                                        // CỘNG DỒN TỔNG TIỀN Ở ĐÂY
+                                        var thanhTien = (mon.SoLuong * (mon.MonAn?.Gia ?? 0));
                                         tongTien += (decimal)thanhTien;
+
                                         <tr>
-                                            <td>
-                                                <div class="fw-bold">@ct.MonAn.TenMon</div>
-                                            </td>
-                                            <td class="text-center">x @ct.SoLuong</td>
-                                            <td class="text-end">@ct.MonAn.Gia.ToString("N0") đ</td>
-                                            <td class="text-end fw-bold">@thanhTien.ToString("N0") đ</td>
+                                            <td>@mon.MonAn?.TenMon</td>
+                                            <td class="text-center">@mon.SoLuong</td>
+                                            <td class="text-end">@mon.MonAn?.Gia.ToString("N0") VNĐ</td>
+                                            <td class="text-end">@thanhTien.ToString("N0") VNĐ</td>
                                         </tr>
                                     }
                                 }
@@ -133,6 +133,18 @@
 </div>
 
 <style>
+
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        /* Hình nền đại dương sang trọng */
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat; /* Thêm fixed */
+    }
     .bg-dola-dark {
         background-color: #002d5b;
     }

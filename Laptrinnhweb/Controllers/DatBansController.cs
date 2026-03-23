@@ -183,7 +183,7 @@ public class DatBansController : Controller
             return RedirectToAction("Index", "MonAns", new { banId = tableId });
         }
 
-        // 2. TÌM ĐƠN ĐẶT HIỆN TẠI CỦA BÀN (Trạng thái 0: Đợi nhận bàn hoặc 1: Đang phục vụ)
+        // 2. TÌM ĐƠN ĐẶT HIỆN TẠI CỦA BÀN (Trạng thái 0 hoặc 1)
         var currentDatBan = await _context.DatBans
             .FirstOrDefaultAsync(d => d.BanAnId == tableId && (d.TrangThai == 0 || d.TrangThai == 1));
 
@@ -191,60 +191,54 @@ public class DatBansController : Controller
 
         if (currentDatBan != null)
         {
-            // --- TRƯỜNG HỢP GỌI THÊM: Tự động cập nhật vào đơn cũ ---
+            // --- TRƯỜNG HỢP GỌI THÊM ---
             foreach (var item in items)
             {
-                // Kiểm tra món này đã có trong danh sách đã gọi của bàn này chưa
                 var existingDetail = await _context.ChiTietDatMons
                     .FirstOrDefaultAsync(c => c.DatBanId == currentDatBan.Id && c.MonAnId == item.Id);
 
                 if (existingDetail != null)
                 {
-                    // Nếu đã có món này rồi thì cộng dồn số lượng
                     existingDetail.SoLuong += item.Qty;
                     _context.Update(existingDetail);
                 }
                 else
                 {
-                    // Nếu chưa có thì thêm dòng mới
-                    var chiTiet = new ChiTietDatMon
+                    _context.ChiTietDatMons.Add(new ChiTietDatMon
                     {
                         DatBanId = currentDatBan.Id,
                         MonAnId = item.Id,
                         SoLuong = item.Qty,
                         BanAnId = tableId
-                    };
-                    _context.ChiTietDatMons.Add(chiTiet);
+                    });
                 }
             }
 
             await _context.SaveChangesAsync();
             TempData["Success"] = "Đã cập nhật thêm món vào bàn!";
-            return RedirectToAction("Details", new { id = currentDatBan.Id });
+
+            // SỬA TẠI ĐÂY: Quay về sơ đồ bàn thay vì vào trang Details bị chặn quyền
+            return RedirectToAction("Index", "BanAns");
         }
         else
         {
-            // --- TRƯỜNG HỢP ĐẶT MỚI: Kiểm tra nếu chưa có thông tin khách thì bắt nhập ---
+            // --- TRƯỜNG HỢP ĐẶT MỚI ---
             if (string.IsNullOrEmpty(tenKhach))
             {
-                // Nếu khách bấm xác nhận ở giỏ hàng mà chưa có thông tin, 
-                // chuyển hướng sang trang Create để nhập tên/sdt
                 return RedirectToAction("Create", new { tableId = tableId, cartJson = cartJson });
             }
 
-            // Tạo mới như cũ
             var datBan = new DatBan
             {
                 BanAnId = tableId,
                 TenKhachHang = tenKhach,
                 SoDienThoai = soDienThoai,
                 NgayDat = DateTime.Now,
-                TrangThai = 1 // Vào bàn ngay
+                TrangThai = 1
             };
 
             _context.DatBans.Add(datBan);
 
-            // Cập nhật trạng thái bàn sang "Đã có khách" (1)
             var banAn = await _context.BanAns.FindAsync(tableId);
             if (banAn != null) banAn.TrangThai = 1;
 
@@ -261,7 +255,10 @@ public class DatBansController : Controller
                 });
             }
             await _context.SaveChangesAsync();
-            return RedirectToAction("Details", new { id = datBan.Id });
+            TempData["Success"] = "Đặt bàn và gọi món thành công!";
+
+            // SỬA TẠI ĐÂY: Quay về sơ đồ bàn
+            return RedirectToAction("Index", "BanAns");
         }
     }
     // Class phụ để hứng dữ liệu JSON
@@ -270,5 +267,19 @@ public class DatBansController : Controller
         public int Id { get; set; }
         public int Qty { get; set; }
     }
-
+    [HttpGet]
+    [Authorize(Roles = "Admin,User")]
+    public async Task<IActionResult> GetTableDetails(int id)
+    {
+        var monDaDat = await _context.ChiTietDatMons
+            .AsNoTracking()
+            .Where(c => c.BanAnId == id && (c.DatBan.TrangThai == 0 || c.DatBan.TrangThai == 1))
+            .Select(c => new {
+                tenMon = c.MonAn.TenMon,
+                soLuong = c.SoLuong,
+                thanhTien = c.SoLuong * c.MonAn.Gia
+            })
+            .ToListAsync();
+        return Json(new { monDaDat });
+    }
 }

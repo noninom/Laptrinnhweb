@@ -1,5 +1,5 @@
 ﻿@model Laptrinnhweb.Models.DatBan
-
+<div style="padding-top: 100px; padding-bottom: 50px;">
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -8,8 +8,11 @@
                     <h4 class="mb-0"><i class="bi bi-person-check"></i> Xác Nhận Đặt Bàn @ViewBag.TenBan</h4>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Create">
+                    <form asp-action="Create" method="post">
+                        @* Đảm bảo có method="post" *@
                         <input type="hidden" asp-for="BanAnId" value="@ViewBag.TableId" />
+
+                        <input type="hidden" name="cartJson" value="@ViewBag.CartJson" />
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Tên khách hàng</label>
@@ -36,3 +39,17 @@
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        /* Hình nền đại dương sang trọng */
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat; /* Thêm fixed */
+    }
+</style>

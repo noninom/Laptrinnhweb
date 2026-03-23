@@ -5,6 +5,7 @@
     var banId = Context.Request.Query["banId"];
     var tenBan = Context.Request.Query["tenBan"];
 }
+<div style="padding-top: 100px; padding-bottom: 50px;">
 
 <div class="container-fluid mt-4 px-4">
     @* Header Section - GIỮ NGUYÊN *@
@@ -122,39 +123,56 @@
             @* --- ĐÓNG CỘT THỰC ĐƠN --- *@
         </div>
 
-        @* --- PHẦN GIỎ HÀNG MỚI THÊM (CỘT BÊN PHẢI) --- *@
-        <div class="col-md-3">
-            <div class="cart-container shadow-lg rounded-4 bg-white sticky-top" style="top: 20px; border: 2px solid #ffc107;">
-                <div class="p-3 bg-dark text-white rounded-top-4 d-flex justify-content-between">
-                    <span class="fw-bold"><i class="bi bi-cart3 text-warning"></i> GIỎ HÀNG</span>
-                    <span id="count" class="badge bg-danger">0</span>
-                </div>
-                <div id="cart-items" class="p-3" style="max-height: 400px; overflow-y: auto;">
-                    <p class="text-center text-muted small py-4">Chưa chọn món nào</p>
-                </div>
-                <div class="p-3 border-top bg-light rounded-bottom-4">
-                    <div class="d-flex justify-content-between mb-3 fw-bold text-dark">
-                        <span>Tổng:</span>
-                        <span id="total-price" class="text-danger">0 đ</span>
+            @* --- PHẦN GIỎ HÀNG (CỘT BÊN PHẢI) --- *@
+            <div class="col-md-3">
+                <div class="sticky-top" style="top: 20px;">
+                    @* 1. GIỎ HÀNG ĐANG CHỌN *@
+                    <div class="cart-container shadow-lg rounded-4 bg-white mb-4" style="border: 2px solid #ffc107;">
+                        <div class="p-3 bg-dark text-white rounded-top-4 d-flex justify-content-between">
+                            <span class="fw-bold"><i class="bi bi-cart3 text-warning"></i> GIỎ HÀNG</span>
+                            <span id="count" class="badge bg-danger">0</span>
+                        </div>
+                        <div id="cart-items" class="p-3" style="max-height: 300px; overflow-y: auto;">
+                            <p class="text-center text-muted small py-4">Chưa chọn món nào</p>
+                        </div>
+                        <div class="p-3 border-top bg-light rounded-bottom-4">
+                            <div class="d-flex justify-content-between mb-3 fw-bold text-dark">
+                                <span>Tổng mới:</span>
+                                <span id="total-price" class="text-danger">0 đ</span>
+                            </div>
+                            <form asp-controller="DatBans" asp-action="ConfirmOrder" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="tableId" value="@banId" />
+                                <input type="hidden" name="cartJson" id="cartJson" />
+                                <button type="submit" id="btn-submit" class="btn btn-warning w-100 fw-bold rounded-pill" disabled>
+                                    @(isServing ? "GỬI YÊU CẦU GỌI THÊM" : "XÁC NHẬN ĐẶT MÓN")
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                    <form asp-controller="DatBans" asp-action="ConfirmOrder" method="post">
-                        @Html.AntiForgeryToken() @* Thêm bảo mật *@
-                        <input type="hidden" name="tableId" value="@banId" />
-                        <input type="hidden" name="cartJson" id="cartJson" />
 
-                        @* Nút bấm sẽ đổi tên nếu là khách đang ngồi tại bàn *@
-                        <button type="submit" id="btn-submit" class="btn btn-warning w-100 fw-bold rounded-pill" disabled>
-                            @(isServing ? "GỬI YÊU CẦU GỌI THÊM" : "XÁC NHẬN ĐẶT MÓN")
-                        </button>
+                    @* 2. LỊCH SỬ MÓN ĐÃ ĐẶT (Nằm ngoài form để tránh nhầm lẫn) *@
+                    <div class="p-3 shadow-lg rounded-4 bg-white border-top border-4 border-primary">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-primary"><i class="bi bi-clock-history"></i> MÓN ĐÃ ĐẶT</span>
+                            <span class="badge bg-primary">Đã gửi bếp</span>
+                        </div>
 
-                    </form>
+                        <div id="history-items" style="max-height: 250px; overflow-y: auto;">
+                            <div class="text-center py-3 text-muted small">
+                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                <br>Đang tải dữ liệu...
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-top mt-2 text-end fw-bold">
+                            Tổng tiền cũ: <span id="history-total" class="text-dark">0 đ</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        @* --- KẾT THÚC PHẦN GIỎ HÀNG --- *@
-    </div>
 </div>
-
+</div>
 <style>
     @* GIỮ NGUYÊN TOÀN BỘ STYLE CŨ CỦA BẠN *@
     body {
@@ -319,7 +337,7 @@
 </style>
 
 <script>
-    @* JS CŨ CỦA BẠN - GIỮ NGUYÊN *@
+    // Hàm tăng giảm số lượng (Giữ nguyên)
     function increment(btn) {
         let input = btn.parentNode.querySelector('input');
         input.stepUp();
@@ -329,14 +347,15 @@
         if (input.value > 1) input.stepDown();
     }
 
-    @* --- JS MỚI CHO GIỎ HÀNG --- *@
     let cart = [];
 
+    // Thêm vào giỏ hàng
     function addToCart(id, name, price) {
-        // Lấy số lượng từ input ngay cạnh nút vừa bấm
-        let qty = parseInt(event.target.closest('.d-flex').querySelector('.soLuongInput').value);
+        // Sử dụng event.currentTarget để xác định đúng nút bấm
+        const cardBody = event.currentTarget.closest('.card-body');
+        const qtyInput = cardBody.querySelector('.soLuongInput');
+        let qty = parseInt(qtyInput.value);
 
-        // Kiểm tra xem món đã có trong giỏ chưa
         let item = cart.find(i => i.id === id);
         if (item) {
             item.qty += qty;
@@ -360,11 +379,11 @@
                 <div class="cart-item-row small text-dark">
                     <div>
                         <strong>${item.name}</strong><br>
-                        ${item.qty} x ${item.price.toLocaleString()}đ
+                        <small class="text-muted">${item.qty} x ${item.price.toLocaleString()}đ</small>
                     </div>
                     <div class="d-flex align-items-center">
-                        <b>${(item.price * item.qty).toLocaleString()}đ</b>
-                        <i class="bi bi-x-circle-fill btn-del" onclick="removeItem('${item.id}')"></i>
+                        <b class="me-2">${(item.price * item.qty).toLocaleString()}đ</b>
+                        <i class="bi bi-x-circle-fill btn-del" onclick="removeItem('${item.id}')" style="cursor:pointer; color:red;"></i>
                     </div>
                 </div>`;
         });
@@ -377,4 +396,58 @@
         document.getElementById('btn-submit').disabled = cart.length === 0;
         document.getElementById('cartJson').value = JSON.stringify(cart);
     }
+
+    // HÀM QUAN TRỌNG: Tải lịch sử từ Server
+    function loadOrderHistory() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableId = urlParams.get('banId');
+
+        if (!tableId) {
+            document.getElementById('history-items').innerHTML = '<p class="text-center text-muted small py-3">Vui lòng chọn bàn.</p>';
+            return;
+        }
+
+        // Đảm bảo đường dẫn URL chính xác với Controller
+            fetch(`/MonAns/GetTableDetails?id=${tableId}`)
+            .then(response => {
+                // Kiểm tra nếu gặp lỗi 401 hoặc 403 (Access Denied)
+        if (response.status === 401 || response.status === 403) {
+                    throw new Error("Bạn không có quyền xem dữ liệu này.");
+                }
+                if (!response.ok) throw new Error("Lỗi mạng hoặc Server.");
+                return response.json();
+            })
+            .then(data => {
+                let html = "";
+                let total = 0;
+
+                // Kiểm tra data.monDaDat có tồn tại không
+                if (!data.monDaDat || data.monDaDat.length === 0) {
+                    html = '<p class="text-center text-muted small py-3">Chưa có món nào được đặt.</p>';
+                } else {
+                    data.monDaDat.forEach(item => {
+                        total += item.thanhTien;
+                        html += `
+                            <div class="small text-muted border-bottom py-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><b class="text-dark">${item.tenMon}</b> (x${item.soLuong})</span>
+                                    <span class="text-primary">${item.thanhTien.toLocaleString()}đ</span>
+                                </div>
+                            </div>`;
+                    });
+                }
+                document.getElementById('history-items').innerHTML = html;
+                document.getElementById('history-total').innerText = total.toLocaleString() + " đ";
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                // Hiển thị thông báo lỗi cụ thể thay vì chỉ nói chung chung
+                document.getElementById('history-items').innerHTML = `<p class="text-danger small py-3 text-center">${err.message}</p>`;
+            });
+    }
+
+    // GỌI HÀM KHI TRANG LOAD XONG
+    document.addEventListener("DOMContentLoaded", function() {
+        loadOrderHistory();
+    });
 </script>

@@ -1,6 +1,13 @@
 ﻿@model IEnumerable<Laptrinnhweb.Models.BanAn>
-
+<div style="padding-top: 100px; padding-bottom: 50px;">
 <div class="container-fluid mt-4 px-4">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
     @* Header Section - Phong cách tối giản sang trọng *@
     <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
         <div>
@@ -101,6 +108,7 @@
     </div>
 </div>
 
+<</div>
 <style>
     /* 1. Layout & Column Setup */
     @@media (min-width: 992px) {

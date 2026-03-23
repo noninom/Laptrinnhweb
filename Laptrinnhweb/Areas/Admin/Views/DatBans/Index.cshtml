@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Quản lý đặt chỗ";
 }
-
+<div style="padding-top: 100px; padding-bottom: 50px;">
 <div class="container-fluid mt-4 px-4">
     @* Header Section - Đổi sang tông màu tối sang trọng *@
     <div class="card border-0 shadow-lg rounded-4 mb-4" style="background: #002d5b;">
@@ -111,12 +111,20 @@
         </div>
     }
 </div>
+<div>
 
 <style>
     /* Tổng thể giao diện */
     body {
-        background-color: #f0f2f5;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+                /* Hình nền đại dương sang trọng */
+                background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                background-repeat: no-repeat; /* Thêm fixed */
     }
 
     /* Header Bảng kiểu Dola */

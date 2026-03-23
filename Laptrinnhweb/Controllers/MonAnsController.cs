@@ -1,4 +1,5 @@
 ﻿using Laptrinnhweb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -101,6 +102,33 @@ namespace Laptrinnhweb.Controllers
             TempData["Success"] = "Đã chọn món thành công!";
 
             return RedirectToAction("Index", new { banId = banId, tenBan = ban?.SoBan });
+        }
+
+        [HttpGet]
+        [AllowAnonymous] // Cho phép khách xem danh sách món đã đặt mà không cần đăng nhập Admin
+        public async Task<IActionResult> GetTableDetails(int id)
+        {
+            // 1. Tìm đơn đặt bàn hiện tại của bàn này (Trạng thái khác 2 - Chưa thanh toán)
+            var activeBooking = await _context.DatBans
+                .FirstOrDefaultAsync(d => d.BanAnId == id && d.TrangThai != 2);
+
+            if (activeBooking == null)
+            {
+                return Json(new { monDaDat = new List<object>() });
+            }
+
+            // 2. Lấy chi tiết các món đã đặt gắn liền với đơn đặt bàn này
+            var monDaDat = await _context.ChiTietDatMons
+                .Where(ct => ct.DatBanId == activeBooking.Id)
+                .Select(ct => new
+                {
+                    tenMon = ct.MonAn.TenMon,
+                    soLuong = ct.SoLuong,
+                    thanhTien = ct.SoLuong * ct.MonAn.Gia
+                })
+                .ToListAsync();
+
+            return Json(new { monDaDat });
         }
 
     }
