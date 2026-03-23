@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<Laptrinnhweb.Models.BanAn>
+
 <div style="padding-top: 100px; padding-bottom: 50px;">
 <div class="container-fluid mt-4 px-4">
         @if (TempData["Success"] != null)
@@ -38,75 +39,106 @@
     </div>
 
     <div class="row g-4 justify-content-center">
-        @foreach (var item in Model)
-        {
-            var activeBooking = item.DatBans?.OrderByDescending(d => d.Id).FirstOrDefault(d => d.TrangThai != 2);
-            var isBusy = item.TrangThai != 0;
-            var isPending = isBusy && (activeBooking == null || activeBooking.TrangThai == 0);
+            @foreach (var item in Model)
+            {
+                var activeBooking = item.ActiveDatBan;   // 🔥 dùng field đã xử lý ở controller
+                var isOwner = item.IsOwner;
 
-            <div class="col-6 col-md-4 col-lg-2-4">
-                <div class="table-card-v2 @(isBusy ? (isPending ? "card-pending" : "card-busy") : "card-free")">
+                var isBusy = item.TrangThai != 0;
+                var isPending = isBusy && (activeBooking == null || activeBooking.TrangThai == 0);
 
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="delete-form">
-                            <button type="submit" class="btn-delete-table">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        </form>
-                    }
+                <div class="col-6 col-md-4 col-lg-2-4">
+                    <div class="table-card-v2 @(isBusy ? (isPending ? "card-pending" : "card-busy") : "card-free") @(isOwner ? "border border-warning border-3" : "")">
 
-                    <div class="card-body-v2 text-center">
-                        <div class="table-image-container mb-3">
-                            @if (item.SoChoNgoi <= 4)
-                            {
-                                @* Nếu bàn bận, có thể dùng ảnh có người/màu khác nếu bạn có *@
-                                <img src="~/images/@(isBusy ? "ban4cho.jpg" : "ban4cho.jpg")"
-                                     class="img-fluid table-img" alt="Bàn 4 chỗ">
-                            }
-                            else
-                            {
-                                <img src="~/images/@(isBusy ? "ban6cho.jpg" : "ban6cho.jpg")"
-                                     class="img-fluid table-img" alt="Bàn 6 chỗ">
-                            }
-                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Xóa bàn này?')" class="delete-form">
+                                <button type="submit" class="btn-delete-table">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </form>
+                        }
 
-                        <h4 class="fw-bold mb-1">BÀN @item.SoBan</h4>
-                        <div class="seat-badge mb-3">
-                            <i class="bi bi-people-fill me-1"></i> @item.SoChoNgoi Chỗ
-                        </div>
+                        <div class="card-body-v2 text-center">
+                            <div class="table-image-container mb-3">
+                                @if (item.SoChoNgoi <= 4)
+                                {
+                                    <img src="~/images/ban4cho.jpg"
+                                         class="img-fluid table-img" alt="Bàn 4 chỗ">
+                                }
+                                else
+                                {
+                                    <img src="~/images/ban6cho.jpg"
+                                         class="img-fluid table-img" alt="Bàn 6 chỗ">
+                                }
+                            </div>
 
-                        <div class="action-zone">
-                            @if (item.TrangThai == 0)
-                            {
-                                <a asp-controller="MonAns" asp-action="Index"
-                                   asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
-                                   class="btn-table-action btn-free-action">
-                                    <i class="bi bi-plus-lg me-1"></i> CHỌN BÀN
-                                </a>
-                            }
-                            else if (activeBooking != null && activeBooking.TrangThai == 1)
-                            {
-                                <a asp-controller="MonAns" asp-action="Index"
-                                   asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
-                                   class="btn-table-action btn-busy-action">
-                                    <i class="bi bi-cart-plus me-1"></i> GỌI THÊM
-                                </a>
-                            }
-                            else
-                            {
-                                <div class="pending-status">
-                                    <div class="spinner-grow spinner-grow-sm text-danger mb-1" role="status"></div>
-                                    <div class="small fw-bold text-uppercase">Đợi nhận bàn</div>
-                                </div>
-                            }
+                            <h4 class="fw-bold mb-1">
+                                BÀN @item.SoBan
+                            </h4>
+
+                            <div class="seat-badge mb-3">
+                                <i class="bi bi-people-fill me-1"></i> @item.SoChoNgoi Chỗ
+                            </div>
+
+                            <div class="action-zone">
+
+                                @* BÀN TRỐNG *@
+                                @if (item.TrangThai == 0)
+                                {
+                                    if (User.Identity.IsAuthenticated)
+                                    {
+                                        // ✅ Đã login → cho đặt bàn
+                                        <a asp-controller="MonAns" asp-action="Index"
+                                           asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                                           class="btn-table-action btn-free-action">
+                                            <i class="bi bi-plus-lg me-1"></i> CHỌN BÀN
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        // ❌ Chưa login → bắt login
+                                        <a asp-area="Identity" asp-page="/Account/Login"
+                                           asp-route-returnUrl="@Url.Action("Index", "MonAns", new { banId = item.Id })"
+                                           class="btn-table-action btn-free-action">
+                                            <i class="bi bi-lock-fill me-1"></i> ĐĂNG NHẬP ĐỂ ĐẶT
+                                        </a>
+                                    }
+                                }
+
+                                @* BÀN ĐANG ĂN *@
+                                else if (activeBooking != null && activeBooking.TrangThai == 1)
+                                {
+                                    if (isOwner)
+                                    {
+                                        <a asp-controller="MonAns" asp-action="Index"
+                                           asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
+                                           class="btn-table-action btn-busy-action">
+                                            <i class="bi bi-cart-plus me-1"></i> GỌI THÊM
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-table-action btn-secondary" disabled>
+                                            <i class="bi bi-lock me-1"></i> BÀN ĐÃ ĐƯỢC ĐẶT 
+                                        </button>
+                                    }
+                                }
+
+                                @* ĐANG CHỜ *@
+                                else
+                                {
+                                    <div class="pending-status">
+                                        <div class="spinner-grow spinner-grow-sm text-warning mb-1" role="status"></div>
+                                        <div class="small fw-bold text-uppercase">ĐỢI NHẬN BÀN</div>
+                                    </div>
+                                }
+
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
-</div>
+            }
 
 <</div>
 <style>

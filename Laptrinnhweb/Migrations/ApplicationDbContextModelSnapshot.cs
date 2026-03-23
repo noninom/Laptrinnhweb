@@ -143,7 +143,7 @@ namespace Laptrinnhweb.Migrations
 
                     b.HasIndex("MonAnId");
 
-                    b.ToTable("ChiTietDatBans");
+                    b.ToTable("ChiTietDatBan");
                 });
 
             modelBuilder.Entity("Laptrinnhweb.Models.ChiTietDatMon", b =>
@@ -202,9 +202,14 @@ namespace Laptrinnhweb.Migrations
                     b.Property<int>("TrangThai")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BanAnId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("DatBans");
                 });
@@ -426,7 +431,13 @@ namespace Laptrinnhweb.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Laptrinnhweb.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("BanAn");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

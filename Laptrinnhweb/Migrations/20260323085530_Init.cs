@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Laptrinnhweb.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdentity : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,6 +30,9 @@ namespace Laptrinnhweb.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Age = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -48,6 +51,38 @@ namespace Laptrinnhweb.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BanAns",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SoBan = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SoChoNgoi = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BanAns", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MonAns",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TenMon = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MoTa = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Gia = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    HinhAnh = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Loai = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MonAns", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -96,8 +131,8 @@ namespace Laptrinnhweb.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -141,8 +176,8 @@ namespace Laptrinnhweb.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -152,6 +187,95 @@ namespace Laptrinnhweb.Migrations
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DatBans",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TenKhachHang = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SoDienThoai = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NgayDat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    BanAnId = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DatBans", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DatBans_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DatBans_BanAns_BanAnId",
+                        column: x => x.BanAnId,
+                        principalTable: "BanAns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChiTietDatBan",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DatBanId = table.Column<int>(type: "int", nullable: false),
+                    MonAnId = table.Column<int>(type: "int", nullable: false),
+                    SoLuong = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChiTietDatBan", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChiTietDatBan_DatBans_DatBanId",
+                        column: x => x.DatBanId,
+                        principalTable: "DatBans",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChiTietDatBan_MonAns_MonAnId",
+                        column: x => x.MonAnId,
+                        principalTable: "MonAns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChiTietDatMons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BanAnId = table.Column<int>(type: "int", nullable: false),
+                    MonAnId = table.Column<int>(type: "int", nullable: false),
+                    DatBanId = table.Column<int>(type: "int", nullable: true),
+                    SoLuong = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChiTietDatMons", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChiTietDatMons_BanAns_BanAnId",
+                        column: x => x.BanAnId,
+                        principalTable: "BanAns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChiTietDatMons_DatBans_DatBanId",
+                        column: x => x.DatBanId,
+                        principalTable: "DatBans",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ChiTietDatMons_MonAns_MonAnId",
+                        column: x => x.MonAnId,
+                        principalTable: "MonAns",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -194,6 +318,41 @@ namespace Laptrinnhweb.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChiTietDatBan_DatBanId",
+                table: "ChiTietDatBan",
+                column: "DatBanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChiTietDatBan_MonAnId",
+                table: "ChiTietDatBan",
+                column: "MonAnId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChiTietDatMons_BanAnId",
+                table: "ChiTietDatMons",
+                column: "BanAnId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChiTietDatMons_DatBanId",
+                table: "ChiTietDatMons",
+                column: "DatBanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChiTietDatMons_MonAnId",
+                table: "ChiTietDatMons",
+                column: "MonAnId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DatBans_BanAnId",
+                table: "DatBans",
+                column: "BanAnId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DatBans_UserId",
+                table: "DatBans",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -215,10 +374,25 @@ namespace Laptrinnhweb.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ChiTietDatBan");
+
+            migrationBuilder.DropTable(
+                name: "ChiTietDatMons");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "DatBans");
+
+            migrationBuilder.DropTable(
+                name: "MonAns");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "BanAns");
         }
     }
 }

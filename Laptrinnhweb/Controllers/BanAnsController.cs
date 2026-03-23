@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Laptrinnhweb.Controllers
 {
@@ -17,7 +18,6 @@ namespace Laptrinnhweb.Controllers
         // 1. Giao diện sơ đồ bàn thực tế
         public async Task<IActionResult> Index()
         {
-            // Tự động nạp 10 bàn nếu cơ sở dữ liệu trống
             if (!_context.BanAns.Any())
             {
                 var danhSach10Ban = new List<BanAn>();
@@ -27,18 +27,34 @@ namespace Laptrinnhweb.Controllers
                     {
                         SoBan = i < 10 ? $"0{i}" : $"{i}",
                         SoChoNgoi = (i <= 5) ? 4 : 6,
-                        TrangThai = 0 // Mặc định là bàn trống (Xanh)
+                        TrangThai = 0
                     });
                 }
                 _context.BanAns.AddRange(danhSach10Ban);
                 await _context.SaveChangesAsync();
             }
 
-            // QUAN TRỌNG: Phải dùng Include(b => b.DatBans) để View kiểm tra được TrangThai đơn hàng
-            // giúp hiện nút "GỌI THÊM" hoặc "ĐỢI NHẬN BÀN" chính xác
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var listBanAn = await _context.BanAns
                 .Include(b => b.DatBans)
                 .ToListAsync();
+
+            // 🔥 XỬ LÝ LOGIC TẠI ĐÂY
+            foreach (var ban in listBanAn)
+            {
+                var active = ban.DatBans
+                    .Where(d => d.TrangThai != 2)
+                    .OrderByDescending(d => d.Id)
+                    .FirstOrDefault();
+
+                ban.ActiveDatBan = active;
+
+                ban.IsOwner = ban.DatBans.Any(d =>
+                    d.UserId == userId &&
+                    (d.TrangThai == 0 || d.TrangThai == 1)
+                );
+            }
 
             return View(listBanAn);
         }

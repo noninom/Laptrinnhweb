@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace Laptrinnhweb.Models
 {
@@ -22,6 +23,9 @@ namespace Laptrinnhweb.Models
 
         // Trạng thái: 0 (Đang chờ), 1 (Đã nhận bàn/Thanh toán)
         public int TrangThai { get; set; }
+
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
         public virtual ICollection<ChiTietDatBan> ChiTietDatBans { get; set; } = new List<ChiTietDatBan>();
     }
 }
