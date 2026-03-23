@@ -15,6 +15,15 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>() 
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// 3. ĐĂNG KÝ SESSION (Phải nằm trước builder.Build)
+builder.Services.AddDistributedMemoryCache(); // Đăng ký bộ nhớ đệm cho Session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session tồn tại trong 30 phút
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // ================== MVC ==================
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
