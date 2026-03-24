@@ -9,7 +9,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                @* Header Hóa Đơn *@
+                @* 1. Header Hóa Đơn *@
                 <div class="card-header bg-dola-dark text-center py-4">
                     <img src="~/images/logo-dola.png" alt="Logo" style="height: 60px;" class="mb-2">
                     <h3 class="text-warning fw-bold mb-0">HÓA ĐƠN THANH TOÁN</h3>
@@ -32,7 +32,7 @@
                         </div>
                     </div>
 
-                    @* Bảng danh sách món ăn *@
+                    @* 2. Bảng danh sách món ăn *@
                     <div class="table-responsive mb-4">
                         <table class="table table-borderless align-middle">
                             <thead class="table-light">
@@ -43,21 +43,19 @@
                                     <th class="text-end">Thành tiền</th>
                                 </tr>
                             </thead>
-                            @* Thay đoạn foreach cũ bằng đoạn này *@
                             <tbody>
                                 @if (ViewBag.DanhSachMon != null)
                                 {
                                     foreach (var mon in (List<Laptrinnhweb.Models.ChiTietDatMon>)ViewBag.DanhSachMon)
                                     {
-                                        // CỘNG DỒN TỔNG TIỀN Ở ĐÂY
                                         var thanhTien = (mon.SoLuong * (mon.MonAn?.Gia ?? 0));
                                         tongTien += (decimal)thanhTien;
 
                                         <tr>
-                                            <td>@mon.MonAn?.TenMon</td>
+                                            <td class="fw-bold">@mon.MonAn?.TenMon</td>
                                             <td class="text-center">@mon.SoLuong</td>
                                             <td class="text-end">@mon.MonAn?.Gia.ToString("N0") VNĐ</td>
-                                            <td class="text-end">@thanhTien.ToString("N0") VNĐ</td>
+                                            <td class="text-end fw-bold">@thanhTien.ToString("N0") VNĐ</td>
                                         </tr>
                                     }
                                 }
@@ -85,11 +83,12 @@
 
                     <hr class="my-5">
 
-                    @* Phương thức thanh toán *@
-                    <h5 class="fw-bold mb-4"><i class="bi bi-wallet2 me-2"></i>Chọn phương thức thanh toán</h5>
-                    <form asp-action="ConfirmPayment" method="post">
+                    @* 3. Phương thức thanh toán *@
+                    <h5 class="fw-bold mb-4 text-center"><i class="bi bi-wallet2 me-2"></i>CHỌN PHƯƠNG THỨC THANH TOÁN</h5>
+
+                    <form asp-action="ConfirmPayment" method="post" id="paymentForm">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <div class="row g-3 mb-5">
+                        <div class="row g-3 mb-4">
                             <div class="col-md-4">
                                 <label class="payment-option">
                                     <input type="radio" name="paymentMethod" value="Cash" checked>
@@ -119,6 +118,20 @@
                             </div>
                         </div>
 
+                        @* 4. Vùng hiển thị QR Code (Chỉ hiện khi chọn Chuyển khoản/Momo) *@
+                        <div id="qr-display-section" class="text-center mb-5 p-4 rounded-4 shadow-sm border" style="display: none; background: #f8f9fa;">
+                            <h6 class="fw-bold text-primary mb-3 text-uppercase" id="qr-title">Quét mã để thanh toán</h6>
+                            <div class="d-inline-block p-3 bg-white rounded-3 shadow-sm border border-2 border-warning mb-3">
+                                <img id="qr-image" src="" alt="Mã QR" style="max-width: 220px; height: auto;" />
+                            </div>
+                            <div>
+                                <p class="mb-1 fw-bold text-danger h5">Số tiền: <span id="qr-amount-text"></span> đ</p>
+                                <p class="text-muted small mb-0 px-md-5">
+                                    <i class="bi bi-info-circle me-1"></i> Vui lòng quét mã và kiểm tra nội dung trước khi bấm xác nhận.
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="d-flex gap-3 justify-content-center">
                             <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-5 py-3 fw-bold">QUAY LẠI</a>
                             <button type="submit" class="btn btn-dola-payment rounded-pill px-5 py-3 fw-bold shadow">
@@ -133,7 +146,6 @@
 </div>
 
 <style>
-
     body {
         margin: 0;
         padding: 0;
@@ -144,12 +156,11 @@
         background-position: center;
         background-attachment: fixed;
         background-repeat: no-repeat; /* Thêm fixed */
-    }
+	}
     .bg-dola-dark {
         background-color: #002d5b;
     }
 
-    /* Thiết kế nút thanh toán option */
     .payment-option {
         width: 100%;
         cursor: pointer;
@@ -178,18 +189,93 @@
         box-shadow: 0 5px 15px rgba(255, 193, 7, 0.2);
     }
 
-    .payment-option i {
-        color: #002d5b;
-    }
-
     .btn-dola-payment {
         background-color: #ffc107;
         color: #002d5b;
         border: none;
+        transition: 0.3s;
     }
 
         .btn-dola-payment:hover {
             background-color: #e5ad06;
             color: #002d5b;
+            transform: scale(1.02);
         }
+
+    #qr-display-section {
+        animation: fadeIn 0.4s ease-in-out;
+        border-style: dashed !important;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const qrSection = document.getElementById('qr-display-section');
+        const qrImage = document.getElementById('qr-image');
+        const qrTitle = document.getElementById('qr-title');
+        const qrAmountText = document.getElementById('qr-amount-text');
+        const paymentOptions = document.querySelectorAll('input[name="paymentMethod"]');
+
+        // Dữ liệu từ Model
+        const rawAmount = "@((tongTien * 1.1m).ToString("F0"))"; // Không dấu phẩy để API đọc
+        const formattedAmount = "@((tongTien * 1.1m).ToString("N0"))";
+        const content = encodeURIComponent("Thanh toan Ban @Model.BanAn?.SoBan HD @Model.Id");
+
+        function updateQR(method) {
+        let qrUrl = "";
+        const qrSection = document.getElementById('qr-display-section');
+        const qrImage = document.getElementById('qr-image');
+        const qrAmountText = document.getElementById('qr-amount-text');
+
+        const rawAmount = "@((tongTien * 1.1m).ToString("F0"))";
+        const formattedAmount = "@((tongTien * 1.1m).ToString("N0"))";
+        const content = encodeURIComponent("THANH TOAN BAN @Model.BanAn?.SoBan HD @Model.Id");
+
+        if (method === "Transfer") {
+            qrUrl = `https://img.vietqr.io/image/MB-0358535214-qr_only.png?amount=${rawAmount}&addInfo=${content}`;
+            qrSection.style.display = 'block';
+        }
+              else if (method === "Momo") {
+        qrTitle.innerText = "Thanh toán qua Ví Momo";
+        const sdt_cua_ban = "0933550847";
+
+        const amount = "@((tongTien * 1.1m).ToString("F0"))";
+
+        const note = "THANH TOAN BAN @Model.BanAn?.SoBan";
+
+        qrUrl = `https://img.vietqr.io/image/MOMO-${sdt_cua_ban}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(note)}`;
+
+        qrImage.src = qrUrl;
+        qrSection.style.display = 'block';
+
+        qrSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+        else {
+            qrSection.style.display = 'none';
+        }
+
+        if (qrUrl !== "") {
+            qrImage.src = qrUrl;
+            qrAmountText.innerText = formattedAmount;
+            qrSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    paymentOptions.forEach(opt => {
+            opt.addEventListener('change', function() {
+                updateQR(this.value);
+            });
+        });
+    });
+</script>

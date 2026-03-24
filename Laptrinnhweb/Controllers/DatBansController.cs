@@ -185,39 +185,48 @@ public class DatBansController : Controller
     [HttpPost]
     public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string? tenKhach, string? soDienThoai)
     {
-        // 1. Kiểm tra giỏ hàng
+        // 1. Kiểm tra giỏ hàng rỗng
         if (string.IsNullOrEmpty(cartJson) || cartJson == "[]")
         {
             return RedirectToAction("Index", "MonAns", new { banId = tableId });
         }
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.IsInRole("Admin");
         var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
 
-        // 🔥 1. Kiểm tra bàn đã có người chưa (KHÔNG cần user)
-        var existingTableBooking = await _context.DatBans
+        // 🔥 TÌM ĐƠN ĐẶT BÀN ĐANG HOẠT ĐỘNG
+        // Nếu là Admin: Lấy đơn của bất kỳ ai miễn là bàn đó đang bận (Trạng thái 0 hoặc 1)
+        // Nếu là User: Chỉ lấy đơn của chính mình
+        var activeBooking = await _context.DatBans
             .FirstOrDefaultAsync(d =>
                 d.BanAnId == tableId &&
-                (d.TrangThai == 0 || d.TrangThai == 1)
+                (d.TrangThai == 0 || d.TrangThai == 1) &&
+                (isAdmin || d.UserId == userId)
             );
 
-        // 🔥 2. Kiểm tra bàn của CHÍNH user
-        var currentDatBan = await _context.DatBans
-            .FirstOrDefaultAsync(d =>
-                d.BanAnId == tableId &&
-                d.UserId == userId &&
-                (d.TrangThai == 0 || d.TrangThai == 1)
-            );
+        // 🔥 KIỂM TRA XEM BÀN CÓ ĐANG BỊ NGƯỜI KHÁC CHIẾM KHÔNG (Dành cho User thường)
+        if (!isAdmin && activeBooking == null)
+        {
+            var isTakenByOthers = await _context.DatBans.AnyAsync(d =>
+                d.BanAnId == tableId && (d.TrangThai == 0 || d.TrangThai == 1));
 
-        // =========================
-        // ✅ CASE 1: USER ĐANG SỞ HỮU BÀN → GỌI THÊM
-        // =========================
-        if (currentDatBan != null)
+            if (isTakenByOthers)
+            {
+                TempData["Error"] = "Bàn này đã có khách khác sử dụng!";
+                return RedirectToAction("Index", "BanAns");
+            }
+        }
+
+        // ==========================================
+        // ✅ THỨ TỰ ƯU TIÊN 1: GỌI THÊM (Cập nhật đơn đang có)
+        // ==========================================
+        if (activeBooking != null)
         {
             foreach (var item in items)
             {
                 var existingDetail = await _context.ChiTietDatMons
-                    .FirstOrDefaultAsync(c => c.DatBanId == currentDatBan.Id && c.MonAnId == item.Id);
+                    .FirstOrDefaultAsync(c => c.DatBanId == activeBooking.Id && c.MonAnId == item.Id);
 
                 if (existingDetail != null)
                 {
@@ -228,7 +237,7 @@ public class DatBansController : Controller
                 {
                     _context.ChiTietDatMons.Add(new ChiTietDatMon
                     {
-                        DatBanId = currentDatBan.Id,
+                        DatBanId = activeBooking.Id,
                         MonAnId = item.Id,
                         SoLuong = item.Qty,
                         BanAnId = tableId
@@ -237,22 +246,17 @@ public class DatBansController : Controller
             }
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Đã cập nhật thêm món vào bàn!";
-            return RedirectToAction("Index", "BanAns");
+            TempData["Success"] = "Đã cập nhật thêm món vào hóa đơn!";
+
+            // Điều hướng dựa trên vai trò
+            return RedirectToAction("Index", "BanAns", new { area = isAdmin ? "Admin" : "" });
         }
 
-        // =========================
-        // ❌ CASE 2: BÀN ĐÃ CÓ NGƯỜI KHÁC → CHẶN
-        // =========================
-        if (existingTableBooking != null && currentDatBan == null)
-        {
-            TempData["Error"] = "Bàn này đã có khách khác sử dụng!";
-            return RedirectToAction("Index", "BanAns");
-        }
+        // ==========================================
+        // ✅ THỨ TỰ ƯU TIÊN 2: ĐẶT MỚI (Bàn đang trống hoàn toàn)
+        // ==========================================
 
-        // =========================
-        // ✅ CASE 3: BÀN TRỐNG → CHO ĐẶT MỚI
-        // =========================
+        // Nếu thiếu thông tin khách (Thường là User chưa qua trang Create)
         if (string.IsNullOrEmpty(tenKhach))
         {
             return RedirectToAction("Create", new { tableId = tableId, cartJson = cartJson });
@@ -264,12 +268,13 @@ public class DatBansController : Controller
             TenKhachHang = tenKhach,
             SoDienThoai = soDienThoai,
             NgayDat = DateTime.Now,
-            TrangThai = 1,
-            UserId = userId // 🔥 QUAN TRỌNG
+            TrangThai = 1, // Đã nhận bàn/đang phục vụ
+            UserId = userId
         };
 
         _context.DatBans.Add(datBan);
 
+        // Cập nhật trạng thái bàn ăn thành bận
         var banAn = await _context.BanAns.FindAsync(tableId);
         if (banAn != null)
         {
@@ -277,8 +282,9 @@ public class DatBansController : Controller
             _context.Update(banAn);
         }
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); // Lưu để lấy DatBanId
 
+        // Thêm các món từ giỏ hàng vào đơn mới
         foreach (var item in items)
         {
             _context.ChiTietDatMons.Add(new ChiTietDatMon
@@ -293,7 +299,7 @@ public class DatBansController : Controller
         await _context.SaveChangesAsync();
         TempData["Success"] = "Đặt bàn và gọi món thành công!";
 
-        return RedirectToAction("Index", "BanAns");
+        return RedirectToAction("Index", "BanAns", new { area = isAdmin ? "Admin" : "" });
     }
     // Class phụ để hứng dữ liệu JSON
     public class CartItem

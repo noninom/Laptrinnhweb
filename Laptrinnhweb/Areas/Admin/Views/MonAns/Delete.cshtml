@@ -1,0 +1,32 @@
+@model Laptrinnhweb.Models.MonAn
+
+<div class="container mt-4">
+    <h2>Xóa món ?n</h2>
+
+    <div class="alert alert-warning">B?n có ch?c ch?n mu?n xóa món này?</div>
+
+    <div class="card mb-3" style="max-width: 540px;">
+        <div class="row g-0">
+            <div class="col-md-4">
+                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                {
+                    <img src="/images/@Model.HinhAnh" class="img-fluid rounded-start" alt="@Model.TenMon" />
+                }
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.TenMon</h5>
+                    <p class="card-text">@Model.MoTa</p>
+                    <p class="card-text"><small class="text-muted">Giá: @Model.Gia.ToString("N0") ?</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form asp-area="Admin" asp-controller="MonAns" asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Xóa</button>
+        <a asp-area="Admin" asp-controller="MonAns" asp-action="Index" class="btn btn-secondary ms-2">H?y</a>
+    </form>
+</div>

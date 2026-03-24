@@ -19,8 +19,8 @@ namespace Laptrinnhweb.Controllers
         {
             _context = context;
         }
-
-        public async Task<IActionResult> Index(string searchString)
+        [AllowAnonymous]
+        public async Task<IActionResult> Index(int? banId, string tenBan, string searchString)
         {
             // BƯỚC 1: KIỂM TRA VÀ LƯU VÀO SQL (Chỉ chạy 1 lần duy nhất khi DB trống)
             if (!_context.MonAns.Any())
@@ -46,6 +46,8 @@ namespace Laptrinnhweb.Controllers
                 _context.MonAns.AddRange(danhSachMon);
                 await _context.SaveChangesAsync(); // Lệnh quan trọng: Đẩy dữ liệu vào SQL Server
             }
+           ViewBag.BanId = banId;
+            ViewBag.TenBan = tenBan;
 
             // BƯỚC 2: LẤY DỮ LIỆU TỪ SQL RA ĐỂ HIỂN THỊ
             var query = from m in _context.MonAns select m;
@@ -65,16 +67,16 @@ namespace Laptrinnhweb.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var activeBooking = await _context.DatBans
-                .FirstOrDefaultAsync(d =>
-                    d.BanAnId == banId
-                    && d.UserId == userId   // 🔥 CHẶN USER
-                    && d.TrangThai != 2
-                );
+     .      FirstOrDefaultAsync(d =>
+                 d.BanAnId == banId
+                 && d.TrangThai != 2 // Bàn phải đang hoạt động
+                 && (User.IsInRole("Admin") || d.UserId == userId) // Phải là chủ bàn HOẶC là Admin
+     );
 
             if (activeBooking == null)
             {
                 TempData["Error"] = "Bàn này hiện chưa có khách đặt hoặc đã thanh toán.";
-                return RedirectToAction("Index", "BanAns");
+                return RedirectToAction("Index", "BanAns", new { area = User.IsInRole("Admin") ? "Admin" : "" });
             }
 
             // 2. Tìm xem món này đã có trong đơn đặt bàn HIỆN TẠI chưa
@@ -106,7 +108,13 @@ namespace Laptrinnhweb.Controllers
             var ban = await _context.BanAns.FindAsync(banId);
             TempData["Success"] = "Đã chọn món thành công!";
 
-            return RedirectToAction("Index", new { banId = banId, tenBan = ban?.SoBan });
+            if (User.IsInRole("Admin"))
+            {
+                // Phải viết như thế này để về localhost:7044/Admin/BanAns
+                return RedirectToAction("Index", "BanAns", new { area = "Admin" });
+            }
+
+            return RedirectToAction("Index", "BanAns", new { area = "" });
         }
 
         [HttpGet]
@@ -118,8 +126,9 @@ namespace Laptrinnhweb.Controllers
             var activeBooking = await _context.DatBans
                 .FirstOrDefaultAsync(d =>
                     d.BanAnId == id
-                    && d.UserId == userId   // 🔥 CHẶN
                     && d.TrangThai != 2
+                    && (d.UserId == userId || User.IsInRole("Admin")) // 🔥 CHẶN
+                    
                 );
 
             if (activeBooking == null)

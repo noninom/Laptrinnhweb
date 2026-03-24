@@ -112,18 +112,23 @@ namespace Laptrinnhweb.Areas.Admin.Controllers
             if (id == null) return NotFound();
 
             var datBan = await _context.DatBans
-                .Include(d => d.BanAn) // Nạp thông tin bàn
+                .Include(d => d.BanAn)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (datBan == null) return NotFound();
 
-            // LẤY DANH SÁCH MÓN PHẢI CÓ .Include(c => c.MonAn)
             var danhSachMon = await _context.ChiTietDatMons
-                .Include(c => c.MonAn) // <--- BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ HIỆN TÊN MÓN
+                .Include(c => c.MonAn)
                 .Where(c => c.DatBanId == id)
                 .ToListAsync();
 
+            decimal tongTienMon = danhSachMon.Sum(c => c.SoLuong * c.MonAn.Gia);
+
+            double tongCong = (double)tongTienMon * 1.1;
+
             ViewBag.DanhSachMon = danhSachMon;
+            ViewBag.TongCong = tongCong;
+
             return View(datBan);
         }
 
