@@ -28,16 +28,10 @@ namespace Laptrinnhweb.Areas.Identity.Pages.Account
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            if (returnUrl != null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-            else
-            {
-                // This needs to be a redirect so that the browser performs a new
-                // request and the identity for the user gets updated.
-                return RedirectToPage();
-            }
+
+            // 🔥 Luôn về trang chủ
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
     }
-}
+    }
+

@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Laptrinnhweb.Areas.Admin.Controllers
 {
@@ -14,11 +17,13 @@ namespace Laptrinnhweb.Areas.Admin.Controllers
     public class MonAnsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
         // Khởi tạo kết nối Database
-        public MonAnsController(ApplicationDbContext context)
+        public MonAnsController(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         public async Task<IActionResult> Index(string searchString)
@@ -49,6 +54,7 @@ namespace Laptrinnhweb.Areas.Admin.Controllers
             }
 
             // BƯỚC 2: LẤY DỮ LIỆU TỪ SQL RA ĐỂ HIỂN THỊ
+            ViewData["CurrentFilter"] = searchString;
             var query = from m in _context.MonAns select m;
 
             if (!string.IsNullOrEmpty(searchString))
@@ -133,5 +139,167 @@ namespace Laptrinnhweb.Areas.Admin.Controllers
             return Json(new { monDaDat });
         }
 
+        
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(MonAn model, IFormFile imageFile)
+        {
+            // Xóa lỗi validate của trường HinhAnh vì chúng ta sẽ gán nó tự động sau khi upload
+            ModelState.Remove("HinhAnh");
+
+            if (ModelState.IsValid)
+            {
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    // 1. Xác định thư mục lưu trữ
+                    var uploads = Path.Combine(_env.WebRootPath, "images");
+                    if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
+
+                    // 2. Tạo tên file duy nhất để tránh trùng lặp
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var filePath = Path.Combine(uploads, fileName);
+
+                    // 3. Lưu file vật lý vào thư mục
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    // 4. Gán tên file vào Model để lưu Database
+                    model.HinhAnh = fileName;
+                }
+                else
+                {
+                    // Nếu không chọn ảnh, có thể gán ảnh mặc định
+                    model.HinhAnh = "default.jpg";
+                }
+
+                _context.MonAns.Add(model);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Thêm món ăn thành công.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(model);
+        }
+
+        // GET: Admin/MonAns/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var item = await _context.MonAns.FindAsync(id);
+            if (item == null) return NotFound();
+
+            return View(item);
+        }
+
+        // POST: Admin/MonAns/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, MonAn model, IFormFile? imageFile)
+        {
+            if (id != model.Id) return NotFound();
+
+            // Bước quan trọng: Xóa lỗi validate của trường HinhAnh 
+            // vì chúng ta đang cập nhật nó thủ công, không phải qua input text
+            ModelState.Remove("HinhAnh");
+            ModelState.Remove("imageFile");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Tìm món ăn trong DB để cập nhật (giữ nguyên tracking)
+                    var itemInDb = await _context.MonAns.FindAsync(id);
+                    if (itemInDb == null) return NotFound();
+
+                    // Cập nhật thông tin
+                    itemInDb.TenMon = model.TenMon;
+                    itemInDb.Gia = model.Gia;
+                    itemInDb.Loai = model.Loai;
+                    itemInDb.MoTa = model.MoTa;
+
+                    // Xử lý File ảnh
+                    if (imageFile != null && imageFile.Length > 0)
+                    {
+                        var uploads = Path.Combine(_env.WebRootPath, "images");
+                        if (!Directory.Exists(uploads)) Directory.CreateDirectory(uploads);
+
+                        // Xóa ảnh cũ nếu có
+                        if (!string.IsNullOrEmpty(itemInDb.HinhAnh))
+                        {
+                            var oldPath = Path.Combine(uploads, itemInDb.HinhAnh);
+                            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                        }
+
+                        // Lưu ảnh mới
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        var filePath = Path.Combine(uploads, fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(stream);
+                        }
+
+                        itemInDb.HinhAnh = fileName;
+                    }
+
+                    _context.Update(itemInDb);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Cập nhật thành công!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!_context.MonAns.Any(e => e.Id == model.Id)) return NotFound();
+                    else throw;
+                }
+            }
+
+            // Nếu lỗi Validation, phải trả về chính model đó để hiện lại lỗi
+            return View(model);
+        }
+
+        // POST: Admin/MonAns/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var item = await _context.MonAns.FindAsync(id);
+            if (item == null) return NotFound();
+
+            // delete image file
+            if (!string.IsNullOrEmpty(item.HinhAnh))
+            {
+                var uploads = Path.Combine(_env.WebRootPath, "images");
+                var path = Path.Combine(uploads, item.HinhAnh);
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+
+            _context.MonAns.Remove(item);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Xóa món ăn thành công.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Optional: Details view
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+            var item = await _context.MonAns.FirstOrDefaultAsync(m => m.Id == id);
+            if (item == null) return NotFound();
+            return View(item);
+        }
     }
 }

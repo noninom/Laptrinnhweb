@@ -1,453 +1,122 @@
 ﻿@model IEnumerable<Laptrinnhweb.Models.MonAn>
 
 @{
-    ViewData["Title"] = "Thực Đơn Hải Sản - Nhóm 10";
-    var banId = Context.Request.Query["banId"];
-    var tenBan = Context.Request.Query["tenBan"];
+    ViewData["Title"] = "Quản lý món ăn";
 }
-<div style="padding-top: 100px; padding-bottom: 50px;">
 
-<div class="container-fluid mt-4 px-4">
-    @* Header Section - GIỮ NGUYÊN *@
-    <div class="text-center mb-5">
-        <h1 class="fw-bold text-uppercase menu-title">⚓ THỰC ĐƠN HẢI SẢN ⚓</h1>
-        <div class="title-underline"></div>
-        <p class="text-muted mt-2">Tinh hoa đại dương - Hương vị thượng hạng</p>
-    </div>
-
-    @* --- BẮT ĐẦU PHẦN CHIA CỘT MỚI THÊM --- *@
-    <div class="row">
-        <div class="col-md-9">
-            @* Cột thực đơn chiếm 9 phần *@
-            @* --- KẾT THÚC PHẦN CHIA CỘT MỚI THÊM --- *@
-
-            @{
-                bool isServing = ViewBag.IsServing ?? false;
-            }
-
-            @* Thông báo trạng thái bàn - GIỮ NGUYÊN *@
-            <div class="row justify-content-center mb-4">
-                <div class="col-md-12">
-                    @if (isServing)
-                    {
-                        <div class="alert alert-dola-warning text-center shadow-sm rounded-pill border-0 animate__animated animate__fadeIn">
-                            <i class="bi bi-lightning-charge-fill me-2"></i> <strong>GỌI THÊM TẠI BÀN</strong> - Món sẽ được tự động cộng vào hóa đơn hiện tại.
-                        </div>
-                    }
-                    @if (!string.IsNullOrEmpty(tenBan))
-                    {
-                        <div class="alert alert-dola-info text-center shadow-sm rounded-pill border-0">
-                            <i class="bi bi-info-circle-fill me-2"></i> Quý khách đang chọn món cho: <span class="badge bg-white text-primary fs-6 px-3 rounded-pill shadow-sm ml-2">BÀN @tenBan</span>
-                            <a asp-controller="BanAns" asp-action="Index" class="ms-3 text-white text-decoration-underline fw-bold small">Đổi bàn khác</a>
-                        </div>
-                    }
+<div class="container-fluid pt-5 mt-4 px-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h2 class="mb-0 fw-bold text-dark">Quản lý món ăn</h2>
                 </div>
-            </div>
 
-            @* Thanh tìm kiếm - GIỮ NGUYÊN *@
-            <div class="row justify-content-center mb-5">
-                <div class="col-md-8">
-                    <form asp-action="Index" method="get" class="search-box-dola shadow-lg">
-                        <input type="hidden" name="banId" value="@banId" />
-                        <input type="hidden" name="tenBan" value="@tenBan" />
-                        <i class="bi bi-search ms-3 text-muted"></i>
-                        <input type="text" name="searchString" class="form-control border-0 bg-transparent"
-                               placeholder="Tìm hải sản, đồ uống..." value="@ViewData["CurrentFilter"]">
-                        <button type="submit" class="btn btn-dola-dark px-4 rounded-pill m-1">TÌM KIẾM</button>
+                @* --- THANH TÌM KIẾM MỚI --- *@
+                <div class="col-md-5">
+                    <form asp-action="Index" method="get" class="d-flex shadow-sm rounded-pill overflow-hidden border">
+                        <input type="text" name="searchString" class="form-control border-0 ps-3"
+                               placeholder="Nhập tên món cần tìm..." value="@ViewData["CurrentFilter"]">
+                        <button type="submit" class="btn btn-dark px-3 border-0">
+                            <i class="bi bi-search"></i>
+                        </button>
                     </form>
                 </div>
-            </div>
 
-            @* Tab danh mục - GIỮ NGUYÊN *@
-            <ul class="nav nav-pills justify-content-center mb-5 gap-3" id="menuTab" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active menu-tab-btn" id="food-tab" data-bs-toggle="pill" data-bs-target="#food" type="button">🦀 HẢI SẢN TƯƠI SỐNG</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link menu-tab-btn" id="drink-tab" data-bs-toggle="pill" data-bs-target="#drink" type="button">🍺 ĐỒ UỐNG & RƯỢU</button>
-                </li>
-            </ul>
-
-            <div class="tab-content">
-                @{
-                    string[] categories = { "Food", "Drink" };
-                    string[] tabIds = { "food", "drink" };
-                }
-
-                @for (int i = 0; i < categories.Length; i++)
-                {
-                    <div class="tab-pane fade @(i == 0 ? "show active" : "")" id="@tabIds[i]" role="tabpanel">
-                        <div class="row g-4">
-                            @foreach (var item in Model.Where(x => x.Loai == categories[i]))
-                            {
-                                <div class="col-sm-6 col-lg-4">
-                                    <div class="card h-100 food-card-v2 border-0 shadow-sm">
-                                        <div class="card-img-wrapper">
-                                            <img src="/images/@item.HinhAnh" class="card-img-top" alt="@item.TenMon">
-                                            <div class="price-badge">@item.Gia.ToString("N0") <small>đ</small></div>
-                                        </div>
-                                        <div class="card-body p-4 d-flex flex-column">
-                                            <h5 class="fw-bold text-dark mb-2">@item.TenMon</h5>
-                                            <p class="text-muted small flex-grow-1 mb-3">@item.MoTa</p>
-
-                                            @if (!string.IsNullOrEmpty(banId))
-                                            {
-                                                @* SỬA LẠI FORM THÀNH BUTTON ĐỂ GỌI JS *@
-                                                <div class="mt-auto">
-                                                    <div class="d-flex align-items-center justify-content-between gap-2">
-                                                        <div class="qty-selector">
-                                                            <button type="button" onclick="decrement(this)">-</button>
-                                                            <input type="number" class="soLuongInput" value="1" min="1" readonly>
-                                                            <button type="button" onclick="increment(this)">+</button>
-                                                        </div>
-                                                        @* Nút thêm gọi hàm addToCart mới *@
-                                                        <button type="button" class="btn btn-dola-order flex-grow-1"
-                                                                onclick="addToCart('@item.Id', '@item.TenMon', @item.Gia)">
-                                                            <i class="bi bi-cart-plus-fill me-1"></i> THÊM
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <a asp-controller="BanAns" asp-action="Index" class="btn btn-outline-secondary rounded-pill mt-auto fw-bold">CHỌN BÀN</a>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-            @* --- ĐÓNG CỘT THỰC ĐƠN --- *@
-        </div>
-
-            @* --- PHẦN GIỎ HÀNG (CỘT BÊN PHẢI) --- *@
-            <div class="col-md-3">
-                <div class="sticky-top" style="top: 20px;">
-                    @* 1. GIỎ HÀNG ĐANG CHỌN *@
-                    <div class="cart-container shadow-lg rounded-4 bg-white mb-4" style="border: 2px solid #ffc107;">
-                        <div class="p-3 bg-dark text-white rounded-top-4 d-flex justify-content-between">
-                            <span class="fw-bold"><i class="bi bi-cart3 text-warning"></i> GIỎ HÀNG</span>
-                            <span id="count" class="badge bg-danger">0</span>
-                        </div>
-                        <div id="cart-items" class="p-3" style="max-height: 300px; overflow-y: auto;">
-                            <p class="text-center text-muted small py-4">Chưa chọn món nào</p>
-                        </div>
-                        <div class="p-3 border-top bg-light rounded-bottom-4">
-                            <div class="d-flex justify-content-between mb-3 fw-bold text-dark">
-                                <span>Tổng mới:</span>
-                                <span id="total-price" class="text-danger">0 đ</span>
-                            </div>
-                            <form asp-controller="DatBans" asp-action="ConfirmOrder" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="tableId" value="@banId" />
-                                <input type="hidden" name="cartJson" id="cartJson" />
-                                <button type="submit" id="btn-submit" class="btn btn-warning w-100 fw-bold rounded-pill" disabled>
-                                    @(isServing ? "GỬI YÊU CẦU GỌI THÊM" : "XÁC NHẬN ĐẶT MÓN")
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    @* 2. LỊCH SỬ MÓN ĐÃ ĐẶT (Nằm ngoài form để tránh nhầm lẫn) *@
-                    <div class="p-3 shadow-lg rounded-4 bg-white border-top border-4 border-primary">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold text-primary"><i class="bi bi-clock-history"></i> MÓN ĐÃ ĐẶT</span>
-                            <span class="badge bg-primary">Đã gửi bếp</span>
-                        </div>
-
-                        <div id="history-items" style="max-height: 250px; overflow-y: auto;">
-                            <div class="text-center py-3 text-muted small">
-                                <div class="spinner-border spinner-border-sm" role="status"></div>
-                                <br>Đang tải dữ liệu...
-                            </div>
-                        </div>
-
-                        <div class="pt-2 border-top mt-2 text-end fw-bold">
-                            Tổng tiền cũ: <span id="history-total" class="text-dark">0 đ</span>
-                        </div>
-                    </div>
+                <div class="col-md-3 text-end">
+                    <a asp-area="Admin" asp-controller="MonAns" asp-action="Create" class="btn btn-success rounded-pill px-4">
+                        <i class="bi bi-plus-circle me-1"></i> Thêm món mới
+                    </a>
                 </div>
             </div>
+        </div>
+
+        <div class="card-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">ID</th>
+                            <th>Ảnh</th>
+                            <th>Tên món</th>
+                            <th>Loại</th>
+                            <th>Giá</th>
+                            <th style="width: 300px;">Mô tả</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center fw-bold">#@item.Id</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                    {
+                                        <img src="/images/@item.HinhAnh" class="rounded shadow-sm" style="width:70px; height:50px; object-fit: cover;" />
+                                    }
+                                </td>
+                                <td class="fw-bold">@item.TenMon</td>
+                                <td>
+                                    <span class="badge @(item.Loai == "Food" ? "bg-info text-dark" : "bg-warning text-dark")">
+                                        @item.Loai
+                                    </span>
+                                </td>
+                                <td class="text-danger fw-bold">@item.Gia.ToString("N0") đ</td>
+                                <td>
+                                    @* --- FIX MÔ TẢ 2 DÒNG --- *@
+                                    <div class="description-truncate" title="@item.MoTa">
+                                        @item.MoTa
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a asp-area="Admin" asp-controller="MonAns" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <form asp-area="Admin" asp-controller="MonAns" asp-action="Delete" method="post" onsubmit="return confirm('Xóa món này?');" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-</div>
+
 <style>
-    @* GIỮ NGUYÊN TOÀN BỘ STYLE CŨ CỦA BẠN *@
-    body {
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-    }
-
-    h1.menu-title {
-        color: #ffffff !important;
-    }
-
-    p.text-muted {
-        color: rgba(255, 255, 255, 0.8) !important;
-    }
-
-    .menu-title {
-        color: #002d5b;
-        letter-spacing: 3px;
-        font-size: 2.5rem;
-    }
-
-    .title-underline {
-        color: #002d5b;
-        width: 80px;
-        height: 4px;
-        background: #ffc107;
-        margin: 10px auto;
-        border-radius: 2px;
-    }
-
-    .search-box-dola {
-        background: white;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        padding: 5px;
-        border: 1px solid #dee2e6;
-    }
-
-    .btn-dola-dark {
-        background: #002d5b;
-        color: #ffc107;
-        font-weight: bold;
-        border: none;
-    }
-
-    .menu-tab-btn {
-        border-radius: 50px !important;
-        padding: 12px 30px !important;
-        font-weight: 700 !important;
-        color: #002d5b !important;
-        background: #fff !important;
-        border: 1px solid #002d5b !important;
-    }
-
-        .menu-tab-btn.active {
-            background: #002d5b !important;
-            color: #ffc107 !important;
-            border: none !important;
-            box-shadow: 0 4px 15px rgba(0,45,91,0.2) !important;
-        }
-
-    .food-card-v2 {
-        border-radius: 20px;
+    /* CSS để ép mô tả hiển thị đúng 2 dòng */
+    .description-truncate {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Số dòng tối đa */
+        -webkit-box-orient: vertical;
         overflow: hidden;
-        transition: all 0.4s;
+        text-overflow: ellipsis;
+        line-height: 1.4;
+        max-height: 2.8em; /* line-height * 2 */
+        font-size: 0.9rem;
+        color: #212529; /*
+        font-weight: 500;
     }
 
-        .food-card-v2:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
-        }
-
-    .card-img-wrapper {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-    }
-
-        .card-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: 0.5s;
-        }
-
-    .price-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(255, 193, 7, 0.95);
-        color: #002d5b;
-        padding: 5px 15px;
-        border-radius: 50px;
-        font-weight: 800;
-    }
-
-    .qty-selector {
-        display: flex;
-        align-items: center;
-        background: #f1f3f5;
-        border-radius: 12px;
-        padding: 2px;
-    }
-
-        .qty-selector button {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: white;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        .qty-selector input {
-            width: 35px;
-            border: none;
-            background: transparent;
-            text-align: center;
-            font-weight: bold;
-        }
-
-    .btn-dola-order {
-        background: #002d5b;
-        color: white;
-        border-radius: 12px;
-        font-weight: bold;
-        border: none;
-        padding: 10px;
-    }
-
-    .alert-dola-info {
-        background: #002d5b;
-        color: white;
-    }
-
-    .alert-dola-warning {
-        background: #ffc107;
-        color: #002d5b;
-    }
-
-    @* STYLE MỚI CHO CÁC DÒNG TRONG GIỎ HÀNG *@
-    .cart-item-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px dashed #ddd;
-    }
-
-    .btn-del {
-        color: red;
-        cursor: pointer;
-        margin-left: 8px;
+    /* Đảm bảo bảng không bị vỡ khi màn hình nhỏ */
+    .table th {
+        white-space: nowrap;
     }
 </style>
-
-<script>
-    // Hàm tăng giảm số lượng (Giữ nguyên)
-    function increment(btn) {
-        let input = btn.parentNode.querySelector('input');
-        input.stepUp();
-    }
-    function decrement(btn) {
-        let input = btn.parentNode.querySelector('input');
-        if (input.value > 1) input.stepDown();
-    }
-
-    let cart = [];
-
-    // Thêm vào giỏ hàng
-    function addToCart(id, name, price) {
-        // Sử dụng event.currentTarget để xác định đúng nút bấm
-        const cardBody = event.currentTarget.closest('.card-body');
-        const qtyInput = cardBody.querySelector('.soLuongInput');
-        let qty = parseInt(qtyInput.value);
-
-        let item = cart.find(i => i.id === id);
-        if (item) {
-            item.qty += qty;
-        } else {
-            cart.push({ id, name, price, qty });
-        }
-        renderCart();
-    }
-
-    function removeItem(id) {
-        cart = cart.filter(i => i.id !== id);
-        renderCart();
-    }
-
-    function renderCart() {
-        let cartHtml = "";
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.qty;
-            cartHtml += `
-                <div class="cart-item-row small text-dark">
-                    <div>
-                        <strong>${item.name}</strong><br>
-                        <small class="text-muted">${item.qty} x ${item.price.toLocaleString()}đ</small>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <b class="me-2">${(item.price * item.qty).toLocaleString()}đ</b>
-                        <i class="bi bi-x-circle-fill btn-del" onclick="removeItem('${item.id}')" style="cursor:pointer; color:red;"></i>
-                    </div>
-                </div>`;
-        });
-
-        if(cart.length === 0) cartHtml = '<p class="text-center text-muted small py-4">Chưa chọn món nào</p>';
-
-        document.getElementById('cart-items').innerHTML = cartHtml;
-        document.getElementById('total-price').innerText = total.toLocaleString() + " đ";
-        document.getElementById('count').innerText = cart.length;
-        document.getElementById('btn-submit').disabled = cart.length === 0;
-        document.getElementById('cartJson').value = JSON.stringify(cart);
-    }
-
-    // HÀM QUAN TRỌNG: Tải lịch sử từ Server
-    function loadOrderHistory() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tableId = urlParams.get('banId');
-
-        if (!tableId) {
-            document.getElementById('history-items').innerHTML = '<p class="text-center text-muted small py-3">Vui lòng chọn bàn.</p>';
-            return;
-        }
-
-        // Đảm bảo đường dẫn URL chính xác với Controller
-            fetch(`/MonAns/GetTableDetails?id=${tableId}`)
-            .then(response => {
-                // Kiểm tra nếu gặp lỗi 401 hoặc 403 (Access Denied)
-        if (response.status === 401 || response.status === 403) {
-                    throw new Error("Bạn không có quyền xem dữ liệu này.");
-                }
-                if (!response.ok) throw new Error("Lỗi mạng hoặc Server.");
-                return response.json();
-            })
-            .then(data => {
-                let html = "";
-                let total = 0;
-
-                // Kiểm tra data.monDaDat có tồn tại không
-                if (!data.monDaDat || data.monDaDat.length === 0) {
-                    html = '<p class="text-center text-muted small py-3">Chưa có món nào được đặt.</p>';
-                } else {
-                    data.monDaDat.forEach(item => {
-                        total += item.thanhTien;
-                        html += `
-                            <div class="small text-muted border-bottom py-2">
-                                <div class="d-flex justify-content-between">
-                                    <span><b class="text-dark">${item.tenMon}</b> (x${item.soLuong})</span>
-                                    <span class="text-primary">${item.thanhTien.toLocaleString()}đ</span>
-                                </div>
-                            </div>`;
-                    });
-                }
-                document.getElementById('history-items').innerHTML = html;
-                document.getElementById('history-total').innerText = total.toLocaleString() + " đ";
-            })
-            .catch(err => {
-                console.error("Fetch error:", err);
-                // Hiển thị thông báo lỗi cụ thể thay vì chỉ nói chung chung
-                document.getElementById('history-items').innerHTML = `<p class="text-danger small py-3 text-center">${err.message}</p>`;
-            });
-    }
-
-    // GỌI HÀM KHI TRANG LOAD XONG
-    document.addEventListener("DOMContentLoaded", function() {
-        loadOrderHistory();
-    });
-</script>

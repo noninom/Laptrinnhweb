@@ -1,35 +1,87 @@
 ﻿@model Laptrinnhweb.Models.MonAn
 
-<div class="container mt-4">
-    <h2>Thêm món ăn mới</h2>
-    <form asp-action="Create">
-        <div class="mb-3">
-            <label class="form-label">Tên món</label>
-            <input asp-for="TenMon" class="form-control" placeholder="Ví dụ: Phở Bò" required />
+<div class="container-fluid pt-5 mt-4 px-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h2 class="mb-0 fw-bold text-dark">Thêm món ăn mới</h2>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Giá tiền (VNĐ)</label>
-            <input asp-for="Gia" class="form-control" type="number" required />
+        <div class="card-body">
+            @* QUAN TRỌNG: Phải có enctype="multipart/form-data" để gửi file *@
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    @* Cột bên trái (8 phần): Nhập liệu *@
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên món</label>
+                            <input asp-for="TenMon" class="form-control" placeholder="Ví dụ: Tôm Hùm Nướng Phô Mai" required />
+                            <span asp-validation-for="TenMon" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Giá tiền (VNĐ)</label>
+                                <input asp-for="Gia" class="form-control" type="number" required />
+                                <span asp-validation-for="Gia" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Loại</label>
+                                @* GIỮ NGUYÊN CẤU TRÚC LOẠI CŨ CỦA BẠN *@
+                                <select asp-for="Loai" class="form-control">
+                                    <option value="Food">Food</option>
+                                    <option value="Drink">Drink</option>
+                                </select>
+                                <span asp-validation-for="Loai" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả món ăn</label>
+                            <textarea asp-for="MoTa" class="form-control" rows="4" placeholder="Mô tả hương vị món ăn..."></textarea>
+                            <span asp-validation-for="MoTa" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn hình ảnh</label>
+                            @* Input file để upload ảnh thực tế *@
+                            <input type="file" name="imageFile" id="imageInput" class="form-control" accept="image/*" required />
+                            <small class="text-muted">Lưu ý: Hệ thống sẽ tự động lưu ảnh vào thư mục images.</small>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill">Lưu món ăn</button>
+                            <a asp-action="Index" class="btn btn-secondary px-4 rounded-pill ms-2">Quay lại Menu</a>
+                        </div>
+                    </div>
+
+                    @* Cột bên phải (4 phần): Hiển thị ảnh Preview giống trang Edit *@
+                    <div class="col-md-4 text-center">
+                        <label class="form-label fw-bold d-block">Ảnh xem trước</label>
+                        <div class="border rounded p-2 bg-light d-flex align-items-center justify-content-center shadow-sm" style="min-height: 250px;">
+                            @* Ảnh sẽ hiện ở đây khi chọn file *@
+                            <img id="imagePreview" src="#" class="img-fluid rounded" style="display: none; max-height: 300px; object-fit: contain;" />
+                            <div id="noImageText" class="text-muted">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i><br>Chưa chọn ảnh
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Loại</label>
-            <select asp-for="Loai" class="form-control">
-                <option value="Khai vị">Khai vị</option>
-                <option value="Món chính">Món chính</option>
-                <option value="Tráng miệng">Tráng miệng</option>
-                <option value="Đồ uống">Đồ uống</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Mô tả món ăn</label>
-            <textarea asp-for="MoTa" class="form-control" rows="3"></textarea>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Tên file hình ảnh</label>
-            <input asp-for="HinhAnh" class="form-control" placeholder="Ví dụ: pho.jpg" required />
-            <small class="text-muted">Lưu ý: Bạn phải copy file ảnh vào thư mục wwwroot/images trước.</small>
-        </div>
-        <button type="submit" class="btn btn-primary">Lưu món ăn</button>
-        <a asp-action="Index" class="btn btn-secondary">Quay lại Menu</a>
-    </form>
+    </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Xử lý hiển thị ảnh tức thì (Preview)
+        document.getElementById('imageInput').onchange = evt => {
+            const [file] = document.getElementById('imageInput').files
+            if (file) {
+                document.getElementById('imagePreview').src = URL.createObjectURL(file)
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('noImageText').style.display = 'none';
+            }
+        }
+    </script>
+}

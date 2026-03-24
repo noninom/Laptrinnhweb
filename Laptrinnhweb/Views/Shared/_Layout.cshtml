@@ -35,14 +35,27 @@
                             </a>
                         </li>
 
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="BanAns" asp-action="Index">
+                                <a class="nav-link" asp-area="Admin" asp-controller="BanAns" asp-action="Index">
                                     <i class="bi bi-grid"></i> Sơ đồ bàn
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="MonAns" asp-action="Index">
+                                    <i class="bi bi-menu-button"></i> Menu
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="BanAns" asp-action="Index">
+                                    <i class="bi bi-grid"></i> Xem sơ đồ bàn
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="MonAns" asp-action="Index">
                                     <i class="bi bi-menu-button"></i> Menu
