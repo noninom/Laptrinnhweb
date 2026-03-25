@@ -1,0 +1,97 @@
+﻿@model IEnumerable<Laptrinnhweb.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Quản lý người dùng</h2>
+
+    <!-- ✅ SUCCESS -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- ✅ ERROR -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Id</th>
+                    <th>Email</th>
+                    <th>Họ tên</th>
+                    <th>Trạng thái</th>
+                    <th width="180px">Hành động</th>
+                </tr>
+            </thead>
+            <tbody class="align-middle text-center">
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.Email</td>
+                        <td>@user.FullName</td>
+
+                        <td>
+                            @if (user.IsBlocked)
+                            {
+                                <span class="badge bg-danger px-3 py-2">
+                                    🔒 Bị chặn
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success px-3 py-2">
+                                    ✅ Hoạt động
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (!user.IsBlocked)
+                            {
+                                <form asp-area="Admin"
+                                      asp-controller="Users"
+                                      asp-action="Block"
+                                      method="post"
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Bạn có chắc muốn CHẶN user này?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button class="btn btn-sm btn-danger">
+                                        🔒 Chặn
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-area="Admin"
+                                      asp-controller="Users"
+                                      asp-action="Unblock"
+                                      method="post"
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Bỏ chặn user này?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button class="btn btn-sm btn-success">
+                                        🔓 Bỏ chặn
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

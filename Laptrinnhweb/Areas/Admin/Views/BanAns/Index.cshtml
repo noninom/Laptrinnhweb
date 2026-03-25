@@ -93,13 +93,32 @@
                                     <i class="bi bi-cart-plus me-1"></i> GỌI THÊM
                                 </a>
                             }
-                            else
-                            {
-                                <div class="pending-status">
-                                    <div class="spinner-grow spinner-grow-sm text-danger mb-1" role="status"></div>
-                                    <div class="small fw-bold text-uppercase">Đợi nhận bàn</div>
-                                </div>
-                            }
+                                @* ĐANG CHỜ *@
+                                else
+                                {
+                                    <div class="pending-status">
+                                        <div class="spinner-grow spinner-grow-sm text-warning mb-1" role="status"></div>
+                                        <div class="small fw-bold text-uppercase">ĐỢI NHẬN BÀN</div>
+
+                                        @* --- THÊM PHẦN HIỂN THỊ GIỜ TẠI ĐÂY --- *@
+                                        @if (activeBooking != null)
+                                        {
+                                            <div class="mt-2">
+                                                <span class="badge bg-dark text-warning p-2 shadow-sm" style="font-size: 0.85rem;">
+                                                    <i class="bi bi-clock-fill me-1"></i>
+                                                    @activeBooking.GioDenDuyKien.ToString("HH:mm") - @activeBooking.GioDenDuyKien.AddMinutes(1).ToString("HH:mm")
+                                                </span>
+                                                @if (!string.IsNullOrEmpty(activeBooking.TenKhachHang))
+                                                {
+                                                    <div class="small text-muted mt-1 fw-bold">
+                                                        <i class="bi bi-person"></i> @activeBooking.TenKhachHang
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        @* -------------------------------------- *@
+                                    </div>
+                                }
                         </div>
                     </div>
                 </div>

@@ -1,55 +1,105 @@
 ﻿@model Laptrinnhweb.Models.DatBan
+
+@{
+    // Lấy danh sách bàn gộp từ ViewBag hoặc Query nếu ViewBag chưa có
+    var gopIds = ViewBag.GopIds ?? Context.Request.Query["gopIds"];
+    var tenBanHienThi = ViewBag.TenBan?.ToString().Replace("-", ", ");
+}
+
 <div style="padding-top: 100px; padding-bottom: 50px;">
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0" style="border-radius: 15px;">
-                <div class="card-header bg-primary text-white text-center py-3" style="border-radius: 15px 15px 0 0;">
-                    <h4 class="mb-0"><i class="bi bi-person-check"></i> Xác Nhận Đặt Bàn @ViewBag.TenBan</h4>
-                </div>
-                <div class="card-body p-4">
-                    <form asp-action="Create" method="post">
-                        @* Đảm bảo có method="post" *@
-                        <input type="hidden" asp-for="BanAnId" value="@ViewBag.TableId" />
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg border-0" style="border-radius: 15px;">
+                    <div class="card-header bg-primary text-white text-center py-3" style="border-radius: 15px 15px 0 0;">
+                        <h4 class="mb-0">
+                            <i class="bi bi-person-check"></i> Xác Nhận Đặt Bàn @tenBanHienThi
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <div>@error.ErrorMessage</div>
+                                }
+                            </div>
+                        }
+                        @* Hiển thị cảnh báo nếu là gộp bàn *@
+                        @if (!string.IsNullOrEmpty(gopIds?.ToString()) && gopIds.ToString().Contains(","))
+                        {
+                            <div class="alert alert-info py-2 small shadow-sm">
+                                <i class="bi bi-info-circle-fill"></i> Bạn đang đặt <strong>nhiều bàn cùng lúc</strong>.
+                                Hệ thống sẽ giữ toàn bộ số bàn này cho bạn.
+                            </div>
+                        }
 
-                        <input type="hidden" name="cartJson" value="@ViewBag.CartJson" />
+                        <form asp-action="ConfirmOrder" method="post">
+                            @* --- DỮ LIỆU ẨN QUAN TRỌNG --- *@
+                            <input type="hidden" name="tableId" value="@ViewBag.TableId" />
+                            <input type="hidden" name="gopIds" value="@gopIds" /> @* Lưu danh sách bàn gộp *@
+                            <input type="hidden" name="cartJson" value="@ViewBag.CartJson" />
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tên khách hàng</label>
-                            <input asp-for="TenKhachHang" class="form-control rounded-pill px-3" placeholder="Nhập tên của bạn..." required />
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Tên khách hàng</label>
+                                <input name="tenKhach" class="form-control rounded-pill px-3"
+                                       placeholder="Nhập tên của bạn..." required />
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Số điện thoại</label>
-                            <input asp-for="SoDienThoai" class="form-control rounded-pill px-3" placeholder="090..." required />
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Số điện thoại</label>
+                                <input name="soDienThoai" class="form-control rounded-pill px-3"
+                                       placeholder="090..." required />
+                            </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Ngày giờ đến</label>
-                            <input asp-for="NgayDat" class="form-control rounded-pill px-3" type="datetime-local" required />
-                        </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Giờ đến dự kiến</label>
+                                <input id="txtGioDen" name="gioDenDuyKien" class="form-control rounded-pill px-3"
+                                       type="datetime-local" required />
+                                <div class="form-text text-danger mt-1">
+                                    <i class="bi bi-info-circle"></i> Nhà hàng sẽ giữ bàn tối đa 2 tiếng từ giờ hẹn.
+                                </div>
+                            </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg rounded-pill shadow-sm fw-bold">XÁC NHẬN ĐẶT BÀN</button>
-                            <a asp-controller="MonAns" asp-action="Index" asp-route-banId="@ViewBag.TableId" class="btn btn-outline-secondary rounded-pill">Quay lại Menu</a>
-                        </div>
-                    </form>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg rounded-pill shadow-sm fw-bold">
+                                    HOÀN TẤT ĐẶT @(gopIds?.ToString().Contains(",") == true ? "CÁC BÀN" : "BÀN")
+                                </button>
+                                <a asp-controller="MonAns" asp-action="Index"
+                                   asp-route-banId="@ViewBag.TableId"
+                                   asp-route-gopIds="@gopIds"
+                                   class="btn btn-outline-secondary rounded-pill">Quay lại Menu</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('txtGioDen').min = now.toISOString().slice(0, 16);
+    </script>
+}
+
 <style>
     body {
         margin: 0;
         padding: 0;
         min-height: 100vh;
-        /* Hình nền đại dương sang trọng */
         background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
-        background-repeat: no-repeat; /* Thêm fixed */
+        background-repeat: no-repeat;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.95);
     }
 </style>

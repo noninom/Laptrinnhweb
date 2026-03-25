@@ -1,9 +1,9 @@
-@model Laptrinnhweb.Models.MonAn
+Ôªø@model Laptrinnhweb.Models.MonAn
 
 <div class="container mt-4">
-    <h2>XÛa mÛn ?n</h2>
+    <h2>X√≥a m√≥n ?n</h2>
 
-    <div class="alert alert-warning">B?n cÛ ch?c ch?n mu?n xÛa mÛn n‡y?</div>
+    <div class="alert alert-warning">B?n c√≥ ch?c ch?n mu?n x√≥a m√≥n n√†y?</div>
 
     <div class="card mb-3" style="max-width: 540px;">
         <div class="row g-0">
@@ -17,7 +17,7 @@
                 <div class="card-body">
                     <h5 class="card-title">@Model.TenMon</h5>
                     <p class="card-text">@Model.MoTa</p>
-                    <p class="card-text"><small class="text-muted">Gi·: @Model.Gia.ToString("N0") ?</small></p>
+                    <p class="card-text"><small class="text-muted">Gi√°: @Model.Gia.ToString("N0") ?</small></p>
                 </div>
             </div>
         </div>
@@ -26,7 +26,19 @@
     <form asp-area="Admin" asp-controller="MonAns" asp-action="Delete" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="id" value="@Model.Id" />
-        <button type="submit" class="btn btn-danger">XÛa</button>
+        <button type="submit" class="btn btn-danger">X√≥a</button>
         <a asp-area="Admin" asp-controller="MonAns" asp-action="Index" class="btn btn-secondary ms-2">H?y</a>
     </form>
 </div>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat; 
+    }
+</style>

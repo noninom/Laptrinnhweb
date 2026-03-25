@@ -131,6 +131,24 @@
                                     <div class="pending-status">
                                         <div class="spinner-grow spinner-grow-sm text-warning mb-1" role="status"></div>
                                         <div class="small fw-bold text-uppercase">ĐỢI NHẬN BÀN</div>
+
+                                        @* --- THÊM PHẦN HIỂN THỊ GIỜ TẠI ĐÂY --- *@
+                                        @if (activeBooking != null)
+                                        {
+                                            <div class="mt-2">
+                                                <span class="badge bg-dark text-warning p-2 shadow-sm" style="font-size: 0.85rem;">
+                                                    <i class="bi bi-clock-fill me-1"></i>
+                                                    @activeBooking.GioDenDuyKien.ToString("HH:mm") - @activeBooking.GioDenDuyKien.AddMinutes(1).ToString("HH:mm")
+                                                </span>
+                                                @if (!string.IsNullOrEmpty(activeBooking.TenKhachHang))
+                                                {
+                                                    <div class="small text-muted mt-1 fw-bold">
+                                                        <i class="bi bi-person"></i> @activeBooking.TenKhachHang
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        @* -------------------------------------- *@
                                     </div>
                                 }
 
@@ -376,3 +394,15 @@
         box-shadow: 0 0 0 4px #fff8e1;
     }
 </style>
+<script>
+            function orderMultipleTables() {
+                const selected = document.querySelectorAll('.select-table-check:checked');
+                if (selected.length === 0) return alert("Vui lòng chọn bàn!");
+
+                const ids = Array.from(selected).map(cb => cb.value).join(",");
+                const firstId = selected[0].value;
+                const names = Array.from(selected).map(cb => cb.getAttribute('data-soban')).join("-");
+
+                window.location.href = `/MonAns/Index?banId=${firstId}&tenBan=${names}&gopIds=${ids}`;
+            }
+</script>
