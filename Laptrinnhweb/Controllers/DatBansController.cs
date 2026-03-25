@@ -260,7 +260,7 @@ public class DatBansController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string tenKhach, string soDienThoai, DateTime gioDenDuyKien)
+    public async Task<IActionResult> ConfirmOrder(int tableId, string cartJson, string tenKhach, string soDienThoai, DateTime gioDenDuyKien, string gopIds)
     {
         // 1. Kiểm tra giỏ hàng
         if (string.IsNullOrEmpty(cartJson) || cartJson == "[]")
@@ -272,30 +272,42 @@ public class DatBansController : Controller
         var isAdmin = User.IsInRole("Admin");
         var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<CartItem>>(cartJson);
 
-       
+        // 2. Kiểm tra trùng lịch
         var thoiGianKetThucDuKien = gioDenDuyKien.AddMinutes(1);
-
         var isOverlap = await _context.DatBans.AnyAsync(d =>
             d.BanAnId == tableId &&
-            d.TrangThai == 0 && // Chỉ check với các đơn đang giữ bàn (chưa nhận bàn)
+            d.TrangThai == 0 &&
             ((gioDenDuyKien >= d.GioDenDuyKien && gioDenDuyKien < d.GioDenDuyKien.AddHours(2)) ||
              (thoiGianKetThucDuKien > d.GioDenDuyKien && thoiGianKetThucDuKien <= d.GioDenDuyKien.AddHours(2))));
 
         if (isOverlap)
         {
-            TempData["Error"] = "Bàn này đã được khách khác đặt trong khung giờ bạn chọn (nhà hàng giữ bàn 2 tiếng). Vui lòng chọn giờ khác hoặc bàn khác!";
+            TempData["Error"] = "Bàn này đã được khách khác đặt!";
             return RedirectToAction("Index", "BanAns");
         }
 
-        var activeBooking = await _context.DatBans
-            .FirstOrDefaultAsync(d => d.BanAnId == tableId && d.TrangThai == 1 && (isAdmin || d.UserId == userId));
+        // 3. TÌM HÓA ĐƠN MÀ USER NÀY ĐANG NGỒI (Trạng thái 1 - Đang phục vụ)
+        var currentActiveBooking = await _context.DatBans
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.TrangThai == 1);
 
-        if (activeBooking != null)
+        if (currentActiveBooking != null)
         {
+            // A. Cập nhật danh sách gộp bàn
+            var currentGop = currentActiveBooking.GhiChuGopBan ?? currentActiveBooking.BanAnId.ToString();
+            var listGop = currentGop.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            if (!listGop.Contains(tableId.ToString()))
+            {
+                listGop.Add(tableId.ToString());
+                currentActiveBooking.GhiChuGopBan = string.Join(",", listGop);
+                _context.Update(currentActiveBooking); // QUAN TRỌNG: Phải cập nhật lại đơn cũ
+            }
+
+            // B. Cập nhật món ăn mới vào đơn hiện có
             foreach (var item in items)
             {
                 var existingDetail = await _context.ChiTietDatMons
-                    .FirstOrDefaultAsync(c => c.DatBanId == activeBooking.Id && c.MonAnId == item.Id);
+                    .FirstOrDefaultAsync(c => c.DatBanId == currentActiveBooking.Id && c.MonAnId == item.Id);
 
                 if (existingDetail != null)
                 {
@@ -306,53 +318,64 @@ public class DatBansController : Controller
                 {
                     _context.ChiTietDatMons.Add(new ChiTietDatMon
                     {
-                        DatBanId = activeBooking.Id,
+                        DatBanId = currentActiveBooking.Id,
                         MonAnId = item.Id,
                         SoLuong = item.Qty,
                         BanAnId = tableId
                     });
                 }
             }
+
+            // C. KHÓA BÀN MỚI (Chuyển thẳng sang màu đỏ - TrangThai = 1)
+            var banMoi = await _context.BanAns.FindAsync(tableId);
+            if (banMoi != null)
+            {
+                banMoi.TrangThai = 1; // Khách đang ngồi nên chuyển sang "Đang phục vụ"
+                _context.Update(banMoi);
+            }
+
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Đã cập nhật thêm món vào hóa đơn đang sử dụng!";
+            TempData["Success"] = $"Đã gộp bàn {banMoi?.SoBan} vào đơn ID #{currentActiveBooking.Id}!";
             return RedirectToAction("Index", "BanAns");
         }
 
+        // 4. Nếu chưa có tên khách (bắt đầu đặt mới hoàn toàn), quay về Create
         if (string.IsNullOrEmpty(tenKhach))
         {
-            return RedirectToAction("Create", new { tableId = tableId, cartJson = cartJson });
+            return RedirectToAction("Create", new { tableId = tableId, cartJson = cartJson, gopIds = gopIds });
         }
-        var user = await _userManager.GetUserAsync(User);
 
-        // THÊM LOGIC CHẶN TẠI ĐÂY
-        if (await CheckAndBlockUserAsync(user))
-        {
-            TempData["Error"] = "Tài khoản của bạn đã bị chặn do vượt quá số lần đặt bàn cho phép (tối đa 2 đơn chưa hoàn thành).";
-            return RedirectToAction("Index", "BanAns");
-        }
+        // 5. TẠO ĐƠN ĐẶT MỚI (Dành cho khách mới đến lần đầu)
         var datBan = new DatBan
         {
             BanAnId = tableId,
             TenKhachHang = tenKhach,
             SoDienThoai = soDienThoai,
             NgayDat = DateTime.Now,
-            GioDenDuyKien = gioDenDuyKien, 
-            TrangThai = 0, 
-            UserId = userId
+            GioDenDuyKien = gioDenDuyKien,
+            TrangThai = 0,
+            UserId = userId,
+            GhiChuGopBan = gopIds
         };
 
         _context.DatBans.Add(datBan);
+        await _context.SaveChangesAsync(); 
 
-        var banAn = await _context.BanAns.FindAsync(tableId);
-        if (banAn != null)
+        var idsToBlock = new List<int> { tableId };
+        if (!string.IsNullOrEmpty(gopIds))
         {
-            banAn.TrangThai = 2;
-            _context.Update(banAn);
+            var extraIds = gopIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
+            idsToBlock.AddRange(extraIds);
         }
 
-        await _context.SaveChangesAsync();
+        var listBans = await _context.BanAns.Where(b => idsToBlock.Distinct().Contains(b.Id)).ToListAsync();
+        foreach (var ban in listBans)
+        {
+            ban.TrangThai = 2; // Khóa màu vàng
+        }
+        _context.UpdateRange(listBans);
 
-        // Lưu món ăn vào chi tiết
+        // 7. Lưu món ăn vào chi tiết
         foreach (var item in items)
         {
             _context.ChiTietDatMons.Add(new ChiTietDatMon
@@ -365,8 +388,7 @@ public class DatBansController : Controller
         }
 
         await _context.SaveChangesAsync();
-        TempData["Success"] = $"Đặt bàn {banAn?.SoBan} thành công! Nhà hàng sẽ giữ bàn cho bạn đến {gioDenDuyKien.AddMinutes(1):HH:mm}.";
-
+        TempData["Success"] = "Đặt gộp bàn thành công!";
         return RedirectToAction("Index", "BanAns");
     }
 

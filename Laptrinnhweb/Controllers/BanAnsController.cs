@@ -52,34 +52,34 @@ namespace Laptrinnhweb.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Include thêm DatBans để lấy thông tin giờ giấc
-            var listBanAn = await _context.BanAns
-                .Include(b => b.DatBans)
+            // Lấy danh sách tất cả các đơn đặt bàn đang hoạt động (chưa thanh toán) để kiểm tra gộp bàn
+            var allActiveBookings = await _context.DatBans
+                .Where(d => d.TrangThai == 0 || d.TrangThai == 1)
                 .ToListAsync();
+
+            var listBanAn = await _context.BanAns.ToListAsync();
 
             foreach (var ban in listBanAn)
             {
-                // Tìm đơn đặt bàn "Đang chờ nhận bàn" (TrangThai = 0) 
-                // hoặc "Đang phục vụ" (TrangThai = 1)
-                var active = ban.DatBans
-                    .Where(d => d.TrangThai == 0 || d.TrangThai == 1)
-                    .OrderBy(d => d.GioDenDuyKien) // Lấy đơn gần nhất
-                    .FirstOrDefault();
+                // 1. Tìm đơn đặt bàn ACTIVE liên quan đến bàn này
+                // Kiểm tra xem bàn này là bàn chính (BanAnId) 
+                // HOẶC là bàn phụ (nằm trong chuỗi GhiChuGopBan, ví dụ: "02,03")
+                var active = allActiveBookings
+                    .FirstOrDefault(d => d.BanAnId == ban.Id ||
+                                        (d.GhiChuGopBan != null && d.GhiChuGopBan.Split(',').Contains(ban.Id.ToString())));
 
                 ban.ActiveDatBan = active;
 
-                // Kiểm tra xem User hiện tại có phải chủ của bàn này không
-                ban.IsOwner = ban.DatBans.Any(d =>
-                    d.UserId == userId &&
-                    (d.TrangThai == 0 || d.TrangThai == 1)
-                );
+                // 2. Kiểm tra quyền sở hữu (IsOwner)
+                // Nếu tìm thấy đơn hàng liên quan VÀ UserId của đơn đó trùng với User đang đăng nhập
+                ban.IsOwner = active != null && active.UserId == userId;
             }
 
             return View(listBanAn);
         }
 
-        // 2. Trang tạo bàn mới
-        [Authorize(Roles = "Admin")]
+            // 2. Trang tạo bàn mới
+            [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();

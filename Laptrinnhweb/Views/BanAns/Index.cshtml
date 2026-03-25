@@ -41,11 +41,12 @@
     <div class="row g-4 justify-content-center">
             @foreach (var item in Model)
             {
-                var activeBooking = item.ActiveDatBan;   // 🔥 dùng field đã xử lý ở controller
+                var activeBooking = item.ActiveDatBan;   
                 var isOwner = item.IsOwner;
 
-                var isBusy = item.TrangThai != 0;
-                var isPending = isBusy && (activeBooking == null || activeBooking.TrangThai == 0);
+                var isBusy = item.TrangThai == 1;
+                var isPending = item.TrangThai == 2 || (item.TrangThai != 0 && activeBooking == null);
+                var isFree = item.TrangThai == 0;
 
                 <div class="col-6 col-md-4 col-lg-2-4">
                     <div class="table-card-v2 @(isBusy ? (isPending ? "card-pending" : "card-busy") : "card-free") @(isOwner ? "border border-warning border-3" : "")">
@@ -106,10 +107,9 @@
                                     }
                                 }
 
-                                @* BÀN ĐANG ĂN *@
-                                else if (activeBooking != null && activeBooking.TrangThai == 1)
+                                else if (isBusy)
                                 {
-                                    if (isOwner)
+                                    if (isOwner || User.IsInRole("Admin"))
                                     {
                                         <a asp-controller="MonAns" asp-action="Index"
                                            asp-route-banId="@item.Id" asp-route-tenBan="@item.SoBan"
@@ -119,8 +119,9 @@
                                     }
                                     else
                                     {
-                                        <button class="btn-table-action btn-secondary" disabled>
-                                            <i class="bi bi-lock me-1"></i> BÀN ĐÃ ĐƯỢC ĐẶT 
+                                        @* User khác nhìn vào sẽ bị chặn hoàn toàn *@
+                                        <button class="btn-table-action btn-secondary" style="background-color: #6c757d; cursor: not-allowed;" disabled>
+                                            <i class="bi bi-lock-fill me-1"></i> BÀN ĐANG PHỤC VỤ
                                         </button>
                                     }
                                 }
