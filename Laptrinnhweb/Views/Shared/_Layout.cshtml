@@ -15,65 +15,51 @@
 <body>
 
     <header>
-        <nav id="navbar" class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark shadow-sm">
+        <nav id="navbar" class="navbar navbar-expand-xl fixed-top navbar-dark bg-dark shadow-sm py-2">
             <div class="container-fluid px-4">
-
-                <a class="navbar-brand fw-bold fs-4 text-uppercase" asp-controller="Home" asp-action="Index" style="letter-spacing: 1px;">
-                    🍽 Restaurant
+                <a class="navbar-brand fw-bold fs-4 text-uppercase d-flex align-items-center" asp-controller="Home" asp-action="Index" style="letter-spacing: 1px;">
+                    <span class="me-2">🍽️</span> RESTAURANT
                 </a>
 
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                    <i class="bi bi-list fs-2"></i>
+                    <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarContent">
-
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="bi bi-house-door"></i> Trang chủ
+                            <a class="nav-link px-3" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i>Trang chủ
                             </a>
                         </li>
 
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Admin" asp-controller="BanAns" asp-action="Index">
-                                    <i class="bi bi-grid"></i> Sơ đồ bàn
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="MonAns" asp-action="Index">
-                                    <i class="bi bi-menu-button"></i> Menu
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="BanAns" asp-action="Index">
-                                    <i class="bi bi-grid"></i> Xem sơ đồ bàn
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="MonAns" asp-action="Index">
-                                    <i class="bi bi-menu-button"></i> Menu
-                                </a>
-                            </li>
-                        }
+                        <li class="nav-item">
+                            <a class="nav-link px-3" asp-area="@(User.IsInRole("Admin") ? "Admin" : "")" asp-controller="BanAns" asp-action="Index">
+                                <i class="bi bi-grid me-1"></i>Sơ đồ bàn
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" asp-controller="MonAns" asp-action="Index">
+                                <i class="bi bi-printer me-1"></i>Menu
+                            </a>
+                        </li>
 
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item ms-lg-2 border-start border-secondary ps-lg-3">
-                                <a class="nav-link text-warning fw-semibold" asp-area="Admin" asp-controller="DatBans" asp-action="Index">
-                                    <i class="bi bi-journal-text"></i> Quản lý đặt chỗ
+                            <li class="nav-item ms-xl-3 ps-xl-3 border-start border-secondary d-none d-xl-block" style="height: 24px;"></li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold px-2" asp-area="Admin" asp-controller="DatBans" asp-action="Index">
+                                    <i class="bi bi-journal-text me-1"></i>Quản lý đặt chỗ
                                 </a>
                             </li>
-
                             <li class="nav-item">
-                                <a class="nav-link text-warning fw-semibold" asp-area="Admin" asp-controller="MonAns" asp-action="Index">
-                                    <i class="bi bi-gear"></i> Quản lý món ăn
+                                <a class="nav-link text-warning fw-semibold px-2" asp-area="Admin" asp-controller="MonAns" asp-action="Index">
+                                    <i class="bi bi-gear me-1"></i>Quản lý món ăn
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-semibold px-2" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                                    <i class="bi bi-people me-1"></i>Thành viên
                                 </a>
                             </li>
                         }
@@ -83,35 +69,31 @@
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item me-3">
-                                <div class="text-white d-flex align-items-center">
-                                    <i class="bi bi-person-circle text-warning me-2 fs-5"></i>
-                                    <span class="small">
-                                        Xin chào, <strong>@User.Identity.Name</strong>
-                                        <span class="badge @(User.IsInRole("Admin") ? "bg-danger" : "bg-warning text-dark") ms-1" style="font-size: 0.65rem;">
-                                            @(User.IsInRole("Admin") ? "ADMIN" : "USER")
+                                <div class="nav-link d-flex align-items-center py-0">
+                                    <div class="text-end me-2 d-none d-sm-block">
+                                        <div class="text-white small lh-1">Xin chào,</div>
+                                        <div class="text-white fw-bold small">@User.Identity.Name</div>
+                                    </div>
+                                    <div class="position-relative">
+                                        <i class="bi bi-person-circle text-warning fs-3"></i>
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.5rem; padding: 0.35em 0.5em;">
+                                            @(User.IsInRole("Admin") ? "AD" : "U")
                                         </span>
-                                    </span>
+                                    </div>
                                 </div>
                             </li>
-
                             <li class="nav-item">
                                 <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-sm">
-                                        Logout <i class="bi bi-box-arrow-right ms-1"></i>
+                                    <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 d-flex align-items-center">
+                                        <span>Logout</span> <i class="bi bi-box-arrow-right ms-2"></i>
                                     </button>
                                 </form>
                             </li>
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-white fw-semibold small" asp-area="Identity" asp-page="/Account/Register">REGISTER</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white border border-light rounded-pill px-3 ms-lg-2 fw-semibold small shadow-sm" asp-area="Identity" asp-page="/Account/Login">
-                                    LOGIN
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link small fw-bold" asp-area="Identity" asp-page="/Account/Register">REGISTER</a></li>
+                            <li class="nav-item ms-2"><a class="btn btn-warning btn-sm rounded-pill px-4 fw-bold" asp-area="Identity" asp-page="/Account/Login">LOGIN</a></li>
                         }
                     </ul>
                 </div>
@@ -125,9 +107,7 @@
         </main>
     </div>
 
-    <footer class="bg-dark text-white text-center py-4 mt-5 border-top border-secondary">
-        <p class="mb-0 small">© 2026 Laptrinnhweb - Restaurant Booking System</p>
-    </footer>
+    
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

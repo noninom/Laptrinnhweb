@@ -5,6 +5,17 @@
     var banId = Context.Request.Query["banId"];
     var tenBan = Context.Request.Query["tenBan"];
 }
+@* Nhận từ URL *@
+@{
+    var gopIds = Context.Request.Query["gopIds"];
+}
+
+<form asp-controller="DatBans" asp-action="Create" method="get">
+    <input type="hidden" name="tableId" value="@Context.Request.Query["banId"]" />
+    <input type="hidden" name="gopIds" value="@gopIds" /> @* <-- Quan trọng *@
+    <input type="hidden" id="cartJsonInput" name="cartJson" />
+    <button type="submit" class="btn btn-success">TIẾP TỤC</button>
+</form>
 <div style="padding-top: 100px; padding-bottom: 50px;">
 
 <div class="container-fluid mt-4 px-4">

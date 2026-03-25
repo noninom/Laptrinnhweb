@@ -18,6 +18,7 @@ namespace Laptrinnhweb.Controllers
         // 1. Giao diện sơ đồ bàn thực tế
         public async Task<IActionResult> Index()
         {
+            // Tự động tạo 10 bàn nếu database trống (giữ nguyên của bạn)
             if (!_context.BanAns.Any())
             {
                 var danhSach10Ban = new List<BanAn>();
@@ -34,22 +35,40 @@ namespace Laptrinnhweb.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // --- LOGIC GIẢI PHÓNG BÀN QUÁ HẠN (THÊM MỚI) ---
+            var bayGio = DateTime.Now;
+            var expiredBookings = await _context.DatBans
+                .Include(d => d.BanAn)
+                .Where(d => d.TrangThai == 0 && bayGio > d.GioDenDuyKien.AddMinutes(1))
+                .ToListAsync();
+
+            foreach (var booking in expiredBookings)
+            {
+                booking.TrangThai = 3; // Trạng thái Hủy/Quá hạn
+                if (booking.BanAn != null) booking.BanAn.TrangThai = 0; // Trả bàn về Trống
+            }
+            if (expiredBookings.Any()) await _context.SaveChangesAsync();
+            // ----------------------------------------------
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // Include thêm DatBans để lấy thông tin giờ giấc
             var listBanAn = await _context.BanAns
                 .Include(b => b.DatBans)
                 .ToListAsync();
 
-            // 🔥 XỬ LÝ LOGIC TẠI ĐÂY
             foreach (var ban in listBanAn)
             {
+                // Tìm đơn đặt bàn "Đang chờ nhận bàn" (TrangThai = 0) 
+                // hoặc "Đang phục vụ" (TrangThai = 1)
                 var active = ban.DatBans
-                    .Where(d => d.TrangThai != 2)
-                    .OrderByDescending(d => d.Id)
+                    .Where(d => d.TrangThai == 0 || d.TrangThai == 1)
+                    .OrderBy(d => d.GioDenDuyKien) // Lấy đơn gần nhất
                     .FirstOrDefault();
 
                 ban.ActiveDatBan = active;
 
+                // Kiểm tra xem User hiện tại có phải chủ của bàn này không
                 ban.IsOwner = ban.DatBans.Any(d =>
                     d.UserId == userId &&
                     (d.TrangThai == 0 || d.TrangThai == 1)

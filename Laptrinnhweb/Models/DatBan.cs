@@ -16,6 +16,13 @@ namespace Laptrinnhweb.Models
 
         // Đổi tên thành NgayDat để khớp với file Index.cshtml và Create.cshtml của bạn
         public DateTime NgayDat { get; set; }
+        public string? GhiChuGopBan { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn giờ đến dự kiến")]
+        public DateTime GioDenDuyKien { get; set; } // Thời gian khách hẹn đến
+
+        // Thời gian hết hạn giữ bàn (thường bằng GioDenDuyKien + 2 tiếng)
+        public DateTime GioHetHan => GioDenDuyKien.AddHours(2);
 
         // Liên kết với bàn
         public int BanAnId { get; set; }
